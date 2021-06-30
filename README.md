@@ -20,13 +20,13 @@ Need Python 3.6 or Upper
 
 Run the decoding:
 -----------------
-. Go to src/
+. Go to srcWatteco/
 . To decode a frame in xmll: echo 11... | py Main.py -of xmlp
 . To decode a frame in json: echo 11... | py Main.py -of json
 
 Run the encoding:
 -----------------
-. Go to src/
+. Go to srcWatteco/
 . To encode a json in frame : echo {"EndPoint": 0, ...} | py Main.py -m e
 
 
@@ -510,14 +510,14 @@ Python 3.6 ou une version plus récente
 
 Lancer le décodage:
 -----------------
-. Aller dans src/
+. Aller dans srcWatteco/
 . Décoder une trame en xml: echo 11... | py Main.py -of xmlp
 . Décoder une trame en json: echo 11... | py Main.py -of json
 
 
 Lancer l'encodage:
 -----------------
-. Aller dans src/
+. Aller dans srcWatteco/
 . Encoder un json en trame : echo {"EndPoint": 0, ...} | py Main.py -m e
 
 Pour les exemples cf la version anglaise.
