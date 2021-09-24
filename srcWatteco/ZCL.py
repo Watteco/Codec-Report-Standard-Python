@@ -3,33 +3,15 @@ from construct import *
 from binascii import hexlify,unhexlify
 from ZCL_FRAME import *
 from WTC_CodecTools import *
-# For debug ...
-class PrintContext(Construct):
-	def _parse(self, stream, context, path):
-		print(context)
-
-		
-##### Tools #####################################
- 
-BytesTostrBase64 = BytesTostrBase64(GreedyBytes)
-
-
-
-
-import binascii
-class BytesTostrHexClass(Adapter):
-	# make specific EndPoint Encoding/Decoding
-	
-	def _encode(self, obj, context):
-		obj_str = bytes.fromhex(obj)
-		return obj_str
-		
-	def _decode(self, obj, context):
-		obj_hex = binascii.hexlify(obj).decode()
-		return obj_hex
+from TICs import *
  
 
-BytesTostrHex = BytesTostrHexClass(GreedyBytes)
+
+#### Min and Max Field or more generaly Minutes or Seconds delay U16
+MinOrSecU16 = BitStruct(
+	"Unit" / Enum(Bit, Minutes = 1 , Seconds = 0),
+	"Value" / BitsInteger(15) 
+ )
 		
 #### Status #####################################################
 Status = Enum(Int8ub,
@@ -77,108 +59,222 @@ DataType = Enum(Int8ub,
 )
 
 
-DataBatch = Switch(
-		this._._._.ClusterID, {
-			"SimpleMetering" : 	Switch(
-									this._._.AttributeID,{
-										"CurrentMetering" :  Switch(this.FieldIndex, {
-																							0 : Int24sb,
-																							1 : Int24sb,
-																							2 : Int16ub,
-																							3 : Int16ub,
-																							4 : Int16ub
-																						}
-																						)
-									}, default               = Pass
-								),
-			"Occupancy" :	Switch(
-									this._._.AttributeID,{
-										"Occupancy" : Flag 
-									}, default               = Pass
-								),
-			"Temperature" : Switch(
-									this._._.AttributeID,{
-										"MeasuredValue" :  Int16sb
-									}, default               = Pass
-								),
-			"Pressure" :Switch(
-									this._._.AttributeID,{
-										"MeasuredValue" :  Int16sb
-									}, default               = Pass
-								),
-			"Illuminance" :Switch(
-									this._._.AttributeID,{
-										"MeasuredValue" :  Int16ub
-									}, default               = Pass
-								),
-			"DifferentialPressure" : Switch(
-									this._._.AttributeID,{
-										"MeasuredValue" :  Int16sb,
-										"MinMeasuredValue" :  Int16sb,
-										"MaxMeasuredValue" :  Int16sb
-									}, default               = Pass
-								),
-			"RelativeHumidity" : Switch(
-									this._._.AttributeID,{
-										"MeasuredValue" :  Int16ub
-									}, default               = Pass
-								),
-			"AnalogInput" : Switch(
-									this._._.AttributeID,{
-										"PresentValue" :  Float32b
-									}, default               = Pass
-								),
-			"BinaryInput" : Switch(
-									this._._.AttributeID,{
-										"PresentValue" : Flag,
-										"Count" :  Int32ub
-									}, default               = Pass
-								),
-			# "MultiStateOutput" : Switch(
-									# this._._.AttributeID,{
-										# "PresentValue" : Unsigned 8 bits integer
-									# }
-								# ),
-			"Configuration" : Switch(
-									this._._.AttributeID,{
-										"NodePowerDescriptor" :  Switch(this.FieldIndex, {
-																								0 : Int8ub,
-																								1 : Int8ub,
-																								2 : Int16ub,
-																								3 : Int16ub,
-																								4 : Int16ub,
-																								5 : Int16ub,
-																								6 : Int16ub,
-																							}
-																							)
-									}, default               = Pass
-								),
-			# "VolumeMeter" : Switch(
-									# this._._.AttributeID,{
-										# "Volume" : signed int l32
-									# }
-								# ),
-			"EnergyPowerMetering" : Switch(
-									this._._.AttributeID,{
-										"PresentValues" :  Int32ub
-									}, default               = Pass
-								),
-			"VoltageCurrentMetering" : Switch(
-									this._._.AttributeID,{
-										"PresentValues" :  Int16ub
-									}, default               = Pass
-								),
-			"Concentration" :	Switch(
-									this._._.AttributeID,{
-										"MeasuredValue" :  Int16ub,
-										"MeasuredValueMean" :  Int16ub,
-										"MeasuredValueMin" :  Int16ub,
-										"MeasuredValueMax" :  Int16ub,
-										
-									}, default               = Pass
-								),
+################# XYZAcceleration specific ######################
+_XYZAccStatsType_ = Switch(FindFieldIndex, {
+	0 : Int16ub,
+	1 : Int16ub,
+	2 : Int16ub,
+	3 : Int16ub,
+	4 : Int16ub,
+	5 : Int16ub,
+	6 : Int16ub,
+	7 : Int16ub,
+	8 : Int16ub,
+	9 : Int16ub
+})
 
-	},default               = Pass
+_XYZAccStatsStruct_ = Struct(
+	"NbAcq"   / Int16ub,
+	"MinMean" / Int16ub,
+	"MinMax"  / Int16ub,
+	"MinDt"   / Int16ub,
+	"MeanMean" / Int16ub,
+	"MeanMax"  / Int16ub,
+	"MeanDt"   / Int16ub,
+	"MaxMean" / Int16ub,
+	"MaxMax"  / Int16ub,
+	"MaxDt"   / Int16ub
+)
+
+_XYZAccLastType_ = Switch(FindFieldIndex, {
+	0 : Int32ub,
+	1 : Int16ub,
+	2 : Int16ub,
+	3 : Int16ub,
+	4 : Int16ub,
+	5 : Int16ub,
+	6 : Int16ub,
+	7 : Int16ub,
+	8 : Int16ub,
+	9 : Int16ub
+})
+
+_XYZAccLastStruct_ = Struct(
+	"NbTriggedAcq"   / Int32ub,
+	"Mean_X" / Int16ub,
+	"Max_X" / Int16ub,
+	"Dt_X" / Int16ub,
+	"Mean_Y" / Int16ub,
+	"Max_Y" / Int16ub,
+	"Dt_Y" / Int16ub,
+	"Mean_Z" / Int16ub,
+	"Max_Z" / Int16ub,
+	"Dt_Z" / Int16ub
+)
+
+_XYZAccParamsStruct_ = Struct(
+	"WaitFreq" / Int16ub,
+	"AcqFreq" / Int16ub,
+	"NewWaitDelay" / MinOrSecU16,
+	"MaxAcqDuration" / Int16ub,
+	"Threshold_X" / Int16ub,
+	"Threshold_Y" / Int16ub,
+	"Threshold_Z" / Int16ub,
+	"OverThrshDt" / Int16ub,
+	"UnderThrshDt" / Int16ub,
+	"Range" / Int16ub,
+	"FilterSmoothCoef" / Int8ub,
+	"FilterGainCoef" / Int8ub,
+	Embedded("WorkingModes" / BitStruct(
+		"WM_SignalEachAcq" / Enum(Bit, Yes = 1 , No = 0),
+		"WM_Reserved" / BitsInteger(4),
+		"WM_RstAftStdRpt_X" / Enum(Bit, Yes = 1 , No = 0),
+		"WM_RstAftStdRpt_Y" / Enum(Bit, Yes = 1 , No = 0),
+		"WM_RstAftStdRpt_Z" / Enum(Bit, Yes = 1 , No = 0)
+	))
+)
+
+###############################################################
+DataBatch = Switch(
+	FindClusterID, {
+		"SimpleMetering" : 	Switch(
+			FindAttributeID,{
+				"CurrentMetering" :  Switch(this.FieldIndex, {
+					0 : Int24sb,
+					1 : Int24sb,
+					2 : Int16ub,
+					3 : Int16ub,
+					4 : Int16ub
+				})
+			}, default = Pass
+		),
+		"PowerQuality" : 	Switch(
+			FindAttributeID,{
+				"CurrentValues" :  Switch(this.FieldIndex, {
+					0 : Int16ub,
+					1 : Int16ub,
+					2 : Int16ub,
+					3 : Int16ub,
+					4 : Int16ub,
+					5 : Int16ub,
+					6 : Int16ub,
+					7 : Int16ub,
+					8 : Int16ub,
+					9 : Int16ub,
+					10 : Int16ub,
+					11 : Int16ub
+				})
+			}, default = Pass
+		),
+		"Occupancy" :	Switch(
+			FindAttributeID,{
+				"Occupancy" : Flag 
+			}, default = Pass
+		),
+		"Temperature" : Switch(
+			FindAttributeID,{
+				"MeasuredValue" :  Int16sb
+			}, default = Pass
+		),
+		"Pressure" :Switch(
+			FindAttributeID,{
+				"MeasuredValue" :  Int16sb
+			}, default               = Pass
+		),
+		"Illuminance" :Switch(
+			FindAttributeID,{
+				"MeasuredValue" :  Int16ub
+			}, default               = Pass
+		),
+		"DifferentialPressure" : Switch(
+			FindAttributeID,{
+				"MeasuredValue" :  Int16sb,
+				"MinMeasuredValue" :  Int16sb,
+				"MaxMeasuredValue" :  Int16sb,
+				"MeanMeasuredValueSinceLastReportAttribute" :  Int16sb,
+				"MinimalMeasuredValueSinceLastReportAttribute" :  Int16sb,
+				"MaximalMeasuredValueSinceLastReportAttribute" :  Int16sb,
+			}, default               = Pass
+		),
+		"RelativeHumidity" : Switch(
+			FindAttributeID,{
+				"MeasuredValue" :  Int16ub
+			}, default               = Pass
+		),
+		"AnalogInput" : Switch(
+			FindAttributeID,{
+				"PresentValue" :  Float32b
+			}, default               = Pass
+		),
+		"BinaryInput" : Switch(
+			FindAttributeID,{
+				"PresentValue" : Flag,
+				"Count" :  Int32ub
+			}, default = Pass
+		),
+		
+#		"MultiStateOutput" : Switch(
+#			FindAttributeID,{
+#				"PresentValue" : Unsigned 8 bits integer
+#			}
+#		),
+
+		"Configuration" : Switch(
+			FindAttributeID,{
+				"NodePowerDescriptor" :  Switch(FindFieldIndex, {
+					0 : Int8ub,
+					1 : Int8ub,
+					2 : Int16ub,
+					3 : Int16ub,
+					4 : Int16ub,
+					5 : Int16ub,
+					6 : Int16ub,
+				})
+			}, default = Pass
+		),
+		
+#		"VolumeMeter" : Switch(
+#			FindAttributeID,{
+#				"Volume" : signed int l32
+#			}
+#		),
+
+		"EnergyPowerMetering" : Switch(
+			FindAttributeID,{
+				"PresentValues" :  Int32ub
+			}, default               = Pass
+		),
+		"VoltageCurrentMetering" : Switch(
+			FindAttributeID,{
+				"PresentValues" :  Int16ub
+			}, default               = Pass
+		),
+		"Concentration" :	Switch(
+			FindAttributeID,{
+				"MeasuredValue" :  Int16ub,
+				"MeasuredValueMean" :  Int16ub,
+				"MeasuredValueMin" :  Int16ub,
+				"MeasuredValueMax" :  Int16ub,
+				
+			}, default               = Pass
+		),
+		"TIC_CBE"    : TICDataBatchCBEFromFieldIndex,
+		"TIC_STD"    : TICDataBatchSTDFromFieldIndex,
+		"TIC_PMEPMI" : TICDataBatchPMEPMIFromFieldIndex,
+		"TIC_ICE" : Switch( FindAttributeID, {
+			"General" : TICDataBatchICEGeneralFromFieldIndex,
+			"ICEp"    : TICDataBatchICEpxFromFieldIndex,
+			"ICEpm1"  : TICDataBatchICEpxFromFieldIndex
+		}),
+		"XYZAcceleration" : 	Switch(
+			FindAttributeID,{
+				"Stats_X" : _XYZAccStatsType_,
+				"Stats_Y" : _XYZAccStatsType_,
+				"Stats_Z" : _XYZAccStatsType_,
+				"Last"    : _XYZAccLastType_
+			}, default = Pass
+		)
+	},default = Pass
 )
 
 
@@ -202,12 +298,6 @@ FrameCtrl = Embedded(BitStruct(
 	"EndPoint" / EndPoint,
 	"Report" / Enum(Bit, Standard = 1 , Batch = 0),
  ))
-
-#### Min and Max Field
-MinMaxField = BitStruct(
-	"Unit" / Enum(Bit, Minutes = 1 , Seconds = 0),
-	"Value" / BitsInteger(15) 
- )
 
 
 #### Command ID #################################################
@@ -257,13 +347,14 @@ ClusterID = Enum(Int16ub,
 	EnergyPowerMetering    = 0x800A,
 	VoltageCurrentMetering = 0x800B,
 	Concentration     = 0x800C,
-	default           = Pass
+	XYZAcceleration   = 0x800F,
+	default           = "_UNKNOWN_"
 )
 
 
 #### Attributes ID/Type (per cluster) ##############################
 AttributeID = Switch(
-	this._.ClusterID, {
+	FindClusterID, {
 		"Basic": Enum (Int16ub,
 			FirmwareVersion     = 0x0002, 
 			KernelVersion       = 0x0003,
@@ -272,42 +363,42 @@ AttributeID = Switch(
 			DateCode            = 0x0006,
 			LocationDescription = 0x0010,
 			ApplicationName     = 0x8001,
-			default = Pass
+			default =  "_UNKNOWN_"
 		),
 		"OnOff": Enum (Int16ub,
 			State	= 0x0000,
-			default = Pass
+			default =  "_UNKNOWN_"
 		),
 		"SimpleMetering": Enum (Int16ub,
 			CurrentMetering     = 0x0000,
 			CurrentCalibration  = 0x8000,
-			default = Pass
+			default =  "_UNKNOWN_"
 		),
 		"PowerQuality": Enum (Int16ub,
 			CurrentValues        = 0x0000,
 			SagCycleThreshold    = 0x0001,
 			SagVoltageThreshold  = 0x0002,
 			OverVoltageThreshold = 0x0003,
-			default = Pass
+			default =  "_UNKNOWN_"
 		),
 		"Occupancy": Enum (Int16ub,
 			Occupancy                    = 0x0000,
 			OccupancyType                = 0x0001,
 			OccupiedToUnoccupiedDelay    = 0x0010,
 			UnoccupiedToOccupiedDelay    = 0x0011,
-			default = Pass
+			default =  "_UNKNOWN_"
 		),
 		"Temperature": Enum (Int16ub,
 			MeasuredValue    = 0x0000,
 			MinMeasuredValue = 0x0001,
 			MaxMeasuredValue = 0x0002,
-			default = Pass
+			default =  "_UNKNOWN_"
 		),
 		"Pressure": Enum (Int16ub,
 			MeasuredValue    = 0x0000,
 			MinMeasuredValue = 0x0001,
 			MaxMeasuredValue = 0x0002,
-			default = Pass
+			default =  "_UNKNOWN_"
 		),
 		"DifferentialPressure": Enum (Int16ub,
 			MeasuredValue    = 0x0000,
@@ -320,18 +411,19 @@ AttributeID = Switch(
 			MeanMeasuredValueSinceLastReportAttribute =0x0100,
 			MinimalMeasuredValueSinceLastReportAttribute =0x0101,
 			MaximalMeasuredValueSinceLastReportAttribute =0x0102,
-		    default = Pass
+		    default =  "_UNKNOWN_"
 		),
 		"RelativeHumidity": Enum (Int16ub,
 			MeasuredValue    = 0x0000,
 			MinMeasuredValue = 0x0001,
 			MaxMeasuredValue = 0x0002,
-			default = Pass
+			default =  "_UNKNOWN_"
 		),
 		"AnalogInput": Enum (Int16ub,
 			PresentValue    = 0x0055,
 			ApplicationType = 0x0100,
-			default = Pass
+			PowerDuration = 0x8003,
+			default =  "_UNKNOWN_"
 		),
 		"BinaryInput": Enum (Int16ub,
 			PresentValue    = 0x0055,
@@ -340,19 +432,19 @@ AttributeID = Switch(
 			EdgeSelection   = 0x0400,
 			DebouncePeriod  = 0x0401,
 			Count           = 0x0402,
-			default = Pass
+			default =  "_UNKNOWN_"
 		),
 		"Illuminance": Enum (Int16ub,
 			MeasuredValue    = 0x0000,
 			MinMeasuredValue = 0x0101,
 			MaxMeasuredValue = 0x0102,
-			default = Pass
+			default =  "_UNKNOWN_"
 		),
 		"MultiStateOutput": Enum (Int16ub,
 			PresentValue    = 0x0055,
 			NumberOfStates  = 0x004A,
 			ApplicationType = 0x0100,
-			default = Pass
+			default =  "_UNKNOWN_"
 		),
 		"Configuration": Enum (Int16ub,
 			Descriptor          = 0x0004,
@@ -368,7 +460,7 @@ AttributeID = Switch(
 			Action7             = 0xff07,
 			Action8             = 0xff08,
 			Action9             = 0xff09,
-			default = Pass
+			default =  "_UNKNOWN_"
 		),
 		"VolumeMeter": Enum (Int16ub,
 			Volume            = 0x0000,
@@ -376,7 +468,7 @@ AttributeID = Switch(
 			MinFlow           = 0x0002,
 			MaxFlow           = 0x0003,
 			FlowDisplayMode   = 0x0004,
-			default = Pass
+			default =  "_UNKNOWN_"
 		),
 		"SensO": Enum (Int16ub,
 			Status                 = 0x0000,
@@ -386,7 +478,7 @@ AttributeID = Switch(
 			TemperatureMeterFreeze = 0x0004,
 			TemperatureMinTxOff    = 0x0005,
 			ParametersLeakFlow     = 0x0006,
-			default = Pass
+			default =  "_UNKNOWN_"
 		),
 		"LoRaWAN": Enum (Int16ub,
 			MessageType              = 0x0000,
@@ -395,174 +487,65 @@ AttributeID = Switch(
 			DataRateParameters       = 0x0003,
 			ABPDevAddr               = 0x0004,
 			OTAAppEUI                = 0x0005,
-			default = Pass
+			default =  "_UNKNOWN_"
 		),
 		"MultiBinaryInput": Enum (Int16ub,
 			PresentValues = 0x0000,
-			default = Pass
+			default =  "_UNKNOWN_"
 		),
 		"SerialInterface": Enum (Int16ub,
 			Speed    = 0x0000,
 			DataBits = 0x0001,
 			Parity   = 0x0002,
 			StopBits = 0x0003,
-			default = Pass
+			default =  "_UNKNOWN_"
 		), 
 		"SerialMasterSlave": Enum (Int16ub,
 			Request         = 0x0000,
 			Answer          = 0x0001,
 			ApplicationType = 0x0002,
-			default = Pass
+			default =  "_UNKNOWN_"
 		),
 		"MultiMasterSlave": Enum (Int16ub,
 			PresentValue    = 0x0000,
 			HeaderOption    = 0x0001,
-			default = Pass
+			default =  "_UNKNOWN_"
 		),
-		"TIC_ICE": Enum (Int16ub,
-			Attribute_0        = 0x0000,
-			Attribute_1        = 0x0001,
-			Attribute_2        = 0x0002,
-			Attribute_virtual_0        = 0x0100,
-			Attribute_virtual_1        = 0x0101,
-			Attribute_virtual_2        = 0x0102,
-			default = Pass
-		),
-		"TIC_CBE": Enum (Int16ub,
-			Attribute_0        = 0x0000,
-			Attribute_virtual_0        = 0x0100,
-			Attribute_virtual_1        = 0x0200,
-			Attribute_virtual_2        = 0x0300,
-			Attribute_virtual_3        = 0x0400,
-			Attribute_virtual_4        = 0x0500,
-			default = Pass
-		),
-		"TIC_CJE": Enum (Int16ub,
-			Attribute_0        = 0x0000,
-			Attribute_virtual_0        = 0x0100,
-			Attribute_virtual_1        = 0x0200,
-			Attribute_virtual_2        = 0x0300,
-			Attribute_virtual_3        = 0x0400,
-			Attribute_virtual_4        = 0x0500,
-			default = Pass
-		),
-		"TIC_STD": Enum (Int16ub,
-			Attribute_0        = 0x0000,
-			Attribute_virtual_0        = 0x0100,
-			Attribute_virtual_1        = 0x0200,
-			Attribute_virtual_2        = 0x0300,
-			Attribute_virtual_3        = 0x0400,
-			Attribute_virtual_4        = 0x0500,
-			default = Pass
-		),
-		"TIC_PMEPMI": Enum (Int16ub,
-			Attribute_0        = 0x0000,
-			Attribute_virtual_0        = 0x0100,
-			Attribute_virtual_1        = 0x0200,
-			Attribute_virtual_2        = 0x0300,
-			Attribute_virtual_3        = 0x0400,
-			Attribute_virtual_4        = 0x0500,
-			default = Pass
-		),
+		"TIC_ICE":    TICAttributeID,
+		"TIC_CBE":    TICAttributeID,
+		"TIC_CJE":    TICAttributeID,
+		"TIC_STD":    TICAttributeID,
+		"TIC_PMEPMI": TICAttributeID,
 		"EnergyPowerMetering": Enum (Int16ub,
 			PresentValues        = 0x0000,
 			PeriodicityAverage   = 0x0001,
-			default = Pass
+			default =  "_UNKNOWN_"
 		),
 		"VoltageCurrentMetering": Enum (Int16ub,
 			PresentValues        = 0x0000,
-			default = Pass
+			default =  "_UNKNOWN_"
 		),
 		"Concentration": Enum (Int16ub,
 			MeasuredValue     = 0x0000,
 			MeasuredValueMean = 0x0100,
 			MeasuredValueMin  = 0x0101,
 			MeasuredValueMax  = 0x0102,
-			Unit           = 0x8004,
-			MinNormalLevel = 0x8008,
-			default = Pass
+			Unit              = 0x8004,
+			MinNormalLevel    = 0x8008,
+			default =  "_UNKNOWN_"
+		),
+		"XYZAcceleration": Enum (Int16ub,
+			Last           = 0x0000,
+			Stats_X        = 0x0001,
+			Stats_Y        = 0x0002,
+			Stats_Z        = 0x0003,
+			Params         = 0x8000,
+			default =  "_UNKNOWN_"
 		)
-	},default = "Bytes" / BytesTostrHex 
+	},default = "Bytes" / BytesTostrHexClass(Bytes(2)) 
 ) 
-###########################################
-#################TIC ######################
-###########################################
 
-DescHeader = BitStruct(
-	"Obsolete" / Enum(Bit, Yes = 1 , No = 0),
-	"Report" / Enum(Bit, Standard = 0 , Decale = 1),
-	"PresentField" / Enum(Bit, DescVarIndexes = 1 , DescVarBitfield = 0),
-	"SizeOf" / BitsInteger(5),
-)
- 
-
- 
-TICDataCBEFromBitfields = Struct(
-Embedded ( 	If ( (((this._.BitField[6] & 1<<0) == 1<<0)),Struct("ADIR1"/Int16ub))),
-Embedded ( 	If ( (((this._.BitField[6]& 1<<1) == 1<<1)),Struct("ADIR2"/Int16ub))),
-Embedded ( 	If ( (((this._.BitField[6]& 1<<2) == 1<<2)),Struct("ADIR3"/Int16ub))),
-Embedded ( 	If ( (((this._.BitField[6]& 1<<3) == 1<<3)),Struct("ADCO"/String(13)))),
-Embedded ( 	If ( (((this._.BitField[6]& 1<<4) == 1<<4)),Struct("OPTARIF"/String(5)))),
-Embedded ( 	If ( (((this._.BitField[6]& 1<<5) == 1<<5)),Struct("ISOUSC"/Int8ub))),
-Embedded ( 	If ( (((this._.BitField[6]& 1<<6) == 1<<6)),Struct("BASE"/Int32ub))),
-Embedded ( 	If ( (((this._.BitField[6]& 1<<7) == 1<<7)),Struct("HCHC"/Int32ub))),
-
-Embedded ( 	If ( (((this._.BitField[5]& 1<<0) == 1<<0)),Struct("HCHP"/Int32ub))),
-Embedded ( 	If ( (((this._.BitField[5]& 1<<1) == 1<<1)),Struct("EJPHN"/Int32ub))),
-Embedded ( 	If ( (((this._.BitField[5]& 1<<2) == 1<<2)),Struct("EJPHPM"/Int32ub))),
-Embedded ( 	If ( (((this._.BitField[5] & 1<<3)== 1<<3)),Struct("BBRHCJB"/Int32ub))),
-Embedded ( 	If ( (((this._.BitField[5] & 1<<4) == 1<<4)),Struct("BBRHPJB"/Int32ub))),
-Embedded ( 	If ( (((this._.BitField[5] & 1<<5) == 1<<5)),Struct("BBRHCJW"/Int32ub))),
-Embedded ( 	If ( (((this._.BitField[5] & 1<<6) == 1<<6)),Struct("BBRHPJW"/Int32ub))),
-Embedded ( 	If ( (((this._.BitField[5] & 1<<7) == 1<<7)),Struct("BBRHCJR"/Int32ub))),
-
-Embedded ( 	If ( (((this._.BitField[4] & 1<<0) == 1<<0)),Struct("BBRHPJR"/Int32ub))),
-Embedded ( 	If ( (((this._.BitField[4] & 1<<1) == 1<<1)),Struct("PEJP"/Int8ub))),
-Embedded ( 	If ( (((this._.BitField[4] & 1<<2) == 1<<2)),Struct("GAZ"/Int32ub))),
-Embedded ( 	If ( (((this._.BitField[4] & 1<<3) == 1<<3)),Struct("AUTRE"/Int32ub))),
-Embedded ( 	If ( (((this._.BitField[4] & 1<<4) == 1<<4)),Struct("PTEC"/String(5)))),
-Embedded ( 	If ( (((this._.BitField[4] & 1<<5) == 1<<5)),Struct("DEMAIN"/String(5)))),
-Embedded ( 	If ( (((this._.BitField[4] & 1<<6) == 1<<6)),Struct("IINST"/Int16ub))),
-Embedded ( 	If ( (((this._.BitField[4] & 1<<7) == 1<<7)),Struct("IINST1"/Int16ub))),
-
-Embedded ( 	If ( (((this._.BitField[3] & 1<<0) == 1<<0)),Struct("IINST2"/Int16ub))),
-Embedded ( 	If ( (((this._.BitField[3] & 1<<1) == 1<<1)),Struct("IINST3"/Int16ub))),
-Embedded ( 	If ( (((this._.BitField[3] & 1<<2) == 1<<2)),Struct("ADPS"/Int16ub))),
-Embedded ( 	If ( (((this._.BitField[3] & 1<<3) == 1<<3)),Struct("IMAX"/Int16ub))),
-Embedded ( 	If ( (((this._.BitField[3] & 1<<4) == 1<<4)),Struct("IMAX1"/Int16ub))),
-Embedded ( 	If ( (((this._.BitField[3] & 1<<5) == 1<<5)),Struct("IMAX2"/Int16ub))),
-Embedded ( 	If ( (((this._.BitField[3] & 1<<6) == 1<<6)),Struct("IMAX3"/Int16ub))),
-Embedded ( 	If ( (((this._.BitField[3] & 1<<7) == 1<<7)),Struct("PMAX"/Int32ub))),
-
-Embedded ( 	If ( (((this._.BitField[2] & 1<<0) == 1<<0)),Struct("PAPP"/Int32ub))),
-Embedded ( 	If ( (((this._.BitField[2] & 1<<1) == 1<<1)),Struct("HHPHC"/String(1)))),
-Embedded ( 	If ( (((this._.BitField[2] & 1<<2) == 1<<2)),Struct("MOTDETAT"/String(7)))),
-Embedded ( 	If ( (((this._.BitField[2] & 1<<3) == 1<<3)),Struct("PPOT"/String(3)))), 
- )
- 
-TICFieldList = Struct(
-	"DescHeader" / DescHeader,
-	Embedded(
-		Switch(this.DescHeader.PresentField,{ 
-			"DescVarIndexes": Struct("essai"/Int8ub),
-			"DescVarBitfield": Struct(
-				"BitField" / Int8ub[7],
-				Switch( this._._._._.ClusterID ,{
-					"TIC_CBE" : Embedded(TICDataCBEFromBitfields) ,
-					"TIC_ICE" : Embedded(TICDataCBEFromBitfields) ,
-				},	default =   "Bytes" / BytesTostrHex
-					
-				)
-				
-			)
-			
-		})
-	),
 	
-	
-	
- )
- 
 ################# ModBus ######################
 
 ModBusAnswer = Struct(
@@ -590,14 +573,42 @@ ModbusFieldList = Struct(
 	Embedded ( 	If ( ((this.DescModbusHeader.EndPointBitField & 0x0040 == 0x0040)), Struct("EndPoint_6" / ModBusAnswer))),
 	Embedded ( 	If ( ((this.DescModbusHeader.EndPointBitField & 0x0080 == 0x0080)), Struct("EndPoint_7" / ModBusAnswer))),
 	Embedded ( 	If ( ((this.DescModbusHeader.EndPointBitField & 0x0100 == 0x0100)), Struct("EndPoint_8" / ModBusAnswer))),
-	Embedded ( 	If ( ((this.DescModbusHeader.EndPointBitField & 0x0200 == 0x0200)), Struct("EndPoint_9" / ModBusAnswer)))
+	Embedded ( 	If ( ((this.DescModbusHeader.EndPointBitField & 0x0200 == 0x0200)), Struct("EndPoint_9" / ModBusAnswer))),
 )
+##########################################
+
+
+#### TIC Specific ########################
+#_TICdata_ Must always be associated (prepend) by a TICDataSelector Struct
+_TICData_ = Switch( FindClusterID ,{
+		"TIC_CBE"    : TICDataCBEFromBitfields ,
+		"TIC_STD"    : TICDataSTDFromBitfields ,
+		"TIC_PMEPMI" : TICDataPMEPMIFromBitfields,
+		"TIC_ICE"    : Switch( FindAttributeID, {
+			"General" : TICDataICEGeneralFromBitfields,
+			"ICEp"    : TICDataICEpFromBitfields,
+			"ICEpm1"  : TICDataICEp1FromBitfields
+		})
+	}, default =  Error)
+  
+TICCFGReportData = Struct(
+	"TICReportSelector" / TICFieldsSelector,
+	"TICDataSelector"   / TICFieldsSelector,
+	Embedded ("TICCriteriaFields" / _TICData_)
+)
+ 
+TICData = Struct(
+	"TICDataSelector" / TICFieldsSelector,
+	Embedded ("TICDataFields"   / _TICData_)
+)
+
 
 ##########################################
 
+
 #### Data (According to Attribute Type) ##############################
 Data = Switch(
-	this.AttributeType, {
+	FindAttributeType, {
 		"Boolean"              : Flag,
 		"General8"             : Byte,
 		"General16"            : Bytes(2),
@@ -605,16 +616,15 @@ Data = Switch(
 		"General32"            : Bytes(4),
 		"General40"            : Bytes(4),
 		"General48"            : 
-			Switch(this.AttributeID, {
+			Switch(FindAttributeID, {
 				"FirmwareVersion" : Struct(
 					"Major" / Int8ub,
 			        "Minor" / Int8ub,
 			        "Revision" / Int8ub,
 			        "Build" / Int24ub,
 			    )
-			},	default =   "Bytes" / BytesTostrHex
-				
-			),
+			},	default =   "Bytes" / BytesTostrHex),
+			
 		"Bitmap8"              : BitStruct("b7" / BitsInteger(1),"b6" / BitsInteger(1),"b5" / BitsInteger(1),"b4" / BitsInteger(1),"b3" / BitsInteger(1),"b2" / BitsInteger(1),"b1" / BitsInteger(1),"b0" / BitsInteger(1)),
 		"Bitmap16"             : BitStruct("b15" / BitsInteger(1),"b14" / BitsInteger(1),"b13" / BitsInteger(1),"b12" / BitsInteger(1),"b11" / BitsInteger(1),"b10" / BitsInteger(1),"b9" / BitsInteger(1),"b8" / BitsInteger(1),"b7" / BitsInteger(1),"b6" / BitsInteger(1),"b5" / BitsInteger(1),"b4" / BitsInteger(1),"b3" / BitsInteger(1),"b2" / BitsInteger(1),"b1" / BitsInteger(1),"b0" / BitsInteger(1)),
 		"UInt8"                : Int8ub,
@@ -630,80 +640,111 @@ Data = Switch(
 			Struct(
 			   "Count"  / Int8ub, 
 			   "String" / BytesTostrHexClass(Bytes(this.Count))
-			 ),
+			),
 		"ByteString"           : Prefixed(Int8ub, 
-			Switch(this.AttributeID, {
-				"CurrentMetering" : Struct( 
-			        "ActiveEnergy" / Int24sb,
-			        "ReactiveEnergy" / Int24sb,
-			        "NbMinutes" / Int16ub,
-			        "ActivePower" / Int16sb,
-			        "ReactivePower" / Int16sb,
-			    ),
-				"NodePowerDescriptor" : Struct(
-			        "CurrentPowerMode" / Enum(Int8ub, ONWhenIdle = 0 , PeriodicallyON = 1, ONOnUserEvent = 2, Other = 3),
-			        "AvailablePowerSourceBitField" / Int8ub,
-					Embedded ( 	If ( ((this.AvailablePowerSourceBitField & 0x01 == 0x01)), Struct("ConstantVoltage" / Int16ub))),
-					Embedded ( 	If ( ((this.AvailablePowerSourceBitField & 0x02 == 0x02)), Struct("RechargeableBatteryVoltage" / Int16ub))),
-					Embedded ( 	If ( ((this.AvailablePowerSourceBitField & 0x04 == 0x04)), Struct("DisposableBatteryVoltage" / Int16ub))),
-					Embedded ( 	If ( ((this.AvailablePowerSourceBitField & 0x08 == 0x08)), Struct("SolarHarvestingVoltage" / Int16ub))),
-					Embedded ( 	If ( ((this.AvailablePowerSourceBitField & 0x10 == 0x10)), Struct("TicHarvestingVoltage" / Int16ub))),
-			        "CurrentPowerSource" / Enum(Int8ub, No = 0, Constant = 1 , RechargeableBattery = 2, DisposableBattery = 4, SolarHarvesting = 8, TicHarvesting = 16)
-			    ),
-				"Attribute_0" : Struct(
-			        "TICFieldList" / TICFieldList
-			    )
-			},	default = Switch(this._.ClusterID, {
-						"EnergyPowerMetering" : Struct(
-							"PositiveActiveEnergy" / Int32ub, 
-							"NegativeActiveEnergy" / Int32ub,
-							"PositiveReActiveEnergy" / Int32ub, 
-							"NegativeReActiveEnergy" / Int32ub,
-							"PositiveActivePower" / Int32ub, 
-							"NegativeActivePower" / Int32ub,
-							"PositiveReActivePower" / Int32ub, 
-							"NegativeReActivePower" / Int32ub
-						)
-						,
-						"VoltageCurrentMetering" : Struct(
-							"Vrms (V/10)" / Int16ub, 
-							"Irms (A/10)" / Int16ub,
-							"Angle (degrees)" / Int16ub
-						)
-						,
-						"MultiMasterSlave" : Switch(this._.CommandID, {
-								"ReportAttributes" : 					
-								Struct(
-									"ModbusFieldList" / ModbusFieldList	
-									),
-								"ReportAttributesAlarm" : 					
+			IfStrStartWithElse( FindClusterID, "TIC_",		
+				Switch(FindCommandID, {
+					"ConfigureReporting" : TICCFGReportData,
+					"ReadReportingConfigurationResponse" : TICCFGReportData
+				}, default = TICData),
+						
+				Switch(
+					FindAttributeID, {
+						"CurrentMetering" : Struct( 
+							"ActiveEnergy" / Int24sb,
+							"ReactiveEnergy" / Int24sb,
+							"NbMinutes" / Int16ub,
+							"ActivePower" / Int16sb,
+							"ReactivePower" / Int16sb,
+						),
+						"CurrentValues": Struct(
+							"Freq" / Int16ub,
+							"FreqMin" / Int16ub,
+							"FreqMax" / Int16ub,
+							"Vrms" / Int16ub,
+							"VrmsMin" / Int16ub,
+							"VrmsMax" / Int16ub,
+							"Vpeak" / Int16ub,
+							"VpeakMin" / Int16ub,
+							"VpeakMax" / Int16ub,
+							"OverVoltageNumber" / Int16ub,
+							"SagNumber" / Int16ub,
+							"BrownoutNumber" / Int16ub,
+
+
+						),
+						"NodePowerDescriptor" : Struct(
+							"CurrentPowerMode" / Enum(Int8ub, ONWhenIdle = 0 , PeriodicallyON = 1, ONOnUserEvent = 2, Other = 3),
+							"AvailablePowerSourceBitField" / Int8ub,
+							Embedded ( 	If ( ((this.AvailablePowerSourceBitField & 0x01 == 0x01)), Struct("ConstantVoltage" / Int16ub))),
+							Embedded ( 	If ( ((this.AvailablePowerSourceBitField & 0x02 == 0x02)), Struct("RechargeableBatteryVoltage" / Int16ub))),
+							Embedded ( 	If ( ((this.AvailablePowerSourceBitField & 0x04 == 0x04)), Struct("DisposableBatteryVoltage" / Int16ub))),
+							Embedded ( 	If ( ((this.AvailablePowerSourceBitField & 0x08 == 0x08)), Struct("SolarHarvestingVoltage" / Int16ub))),
+							Embedded ( 	If ( ((this.AvailablePowerSourceBitField & 0x10 == 0x10)), Struct("TicHarvestingVoltage" / Int16ub))),
+							"CurrentPowerSource" / Enum(Int8ub, No = 0, Constant = 1 , RechargeableBattery = 2, DisposableBattery = 4, SolarHarvesting = 8, TicHarvesting = 16)
+						),	
+					},	
+					default = Switch(
+						FindClusterID, {
+							"EnergyPowerMetering" : Struct(
+								"PositiveActiveEnergy" / Int32ub, 
+								"NegativeActiveEnergy" / Int32ub,
+								"PositiveReActiveEnergy" / Int32ub, 
+								"NegativeReActiveEnergy" / Int32ub,
+								"PositiveActivePower" / Int32ub, 
+								"NegativeActivePower" / Int32ub,
+								"PositiveReActivePower" / Int32ub, 
+								"NegativeReActivePower" / Int32ub
+							),
+							
+							"VoltageCurrentMetering" : Struct(
+								"Vrms" / Int16ub, 
+								"Irms" / Int16ub,
+								"Angle" / Int16ub
+							),
+							
+							"MultiMasterSlave" : Switch(FindCommandID, {
+									"ReportAttributes" : 					
 									Struct(
-									"ModbusFieldList" / ModbusFieldList	
-									)
-							}, default = Struct(
-								"Bytes" / BytesTostrHex
-							)
-						)
-						,
-						"SerialMasterSlave" : Switch(this._.CommandID, {
-								"ReportAttributes" : 					
-								Struct(
-									"ModBusAnswer" / ModBusAnswer	
-									),
-								"ReportAttributesAlarm" : 					
+										"ModbusFieldList" / ModbusFieldList	
+										),
+									"ReportAttributesAlarm" : 					
+										Struct(
+										"ModbusFieldList" / ModbusFieldList	
+										)
+								}, default = Struct(
+									"Bytes" / BytesTostrHex
+								)
+							),
+							
+							"SerialMasterSlave" : Switch(FindCommandID, {
+									"ReportAttributes" : 					
 									Struct(
-									"ModBusAnswer" / ModBusAnswer	
-									)
-							}, default = Struct(
-								"Bytes" / BytesTostrHex
+										"ModBusAnswer" / ModBusAnswer	
+										),
+									"ReportAttributesAlarm" : 					
+										Struct(
+										"ModBusAnswer" / ModBusAnswer	
+										)
+								}, default = Struct(
+									"Bytes" / BytesTostrHex
+								)
+							),
+							"XYZAcceleration" : Switch(FindAttributeID, {
+									"Stats_X" : _XYZAccStatsStruct_,
+									"Stats_Y" : _XYZAccStatsStruct_,
+									"Stats_Z" : _XYZAccStatsStruct_,
+									"Last"    : _XYZAccLastStruct_,
+									"Params"  : _XYZAccParamsStruct_
+								}, default =  Error
 							)
+						}, 		
+						default = Struct(
+							"Bytes" / BytesTostrHex
 						)
-					}
-					, default = Struct(
-						"Bytes" / BytesTostrHex
 					)
+				)
 			)
-		)
 		),
 		"LongByteString"       : Prefixed(Int16ub, Struct(
 			                       "Bytes" / BytesTostrHex
@@ -726,39 +767,40 @@ TagValue = BitStruct(
 ###### Cause CAUSE #####################################
 ########################################################
 
-ifBatch2 = Struct( 
-									"AttributeID" / AttributeID,
-									"FieldIndex" / Int8ub,
-									"MinReport" / MinMaxField,
-									"MaxReport" / MinMaxField,
-									"Delta" / DataBatch,
-									"Resolution" / DataBatch,
-									"TagValue" / TagValue
-)
+
 class BatchSizeAdapter(Adapter):
 	# revert the size in configure batch cause we swapped it
 	
 	def _encode(self, obj, context):
-		return ( 
-			(obj&0x01)<<5 | (obj&0x02)<<3 | (obj&0x04)<<1 |
-			(obj&0x08)>>1 | (obj&0x10)>>3 | (obj&0x20)>>5 ) 
+		return( obj&0x08 |
+			(obj&0x01)<<6 | (obj&0x02)<<4 | (obj&0x04)<<2 |
+			(obj&0x10)>>2 | (obj&0x20)>>4 | (obj&0x40)>>6 ) 
 
 		
 	def _decode(self, obj, context):
-		return ( 
-			(obj&0x01)<<5 | (obj&0x02)<<3 | (obj&0x04)<<1 |
-			(obj&0x08)>>1 | (obj&0x10)>>3 | (obj&0x20)>>5 ) 
+		return( obj&0x08 |
+			(obj&0x01)<<6 | (obj&0x02)<<4 | (obj&0x04)<<2 |
+			(obj&0x10)>>2 | (obj&0x20)>>4 | (obj&0x40)>>6 ) 
 
 
-BatchSize = BatchSizeAdapter(BitsInteger(6))
+BatchSize = BatchSizeAdapter(BitsInteger(7))
+
+#DataBatch
+ifBatch = Struct(
+	"FieldIndex" / Int8ub,
+	"MinReport" / MinOrSecU16,
+	"MaxReport" / MinOrSecU16,
+	"Delta" / DataBatch,
+	"Resolution" / DataBatch,
+	"TagValue" / TagValue
+)
 
 ReportParameters = BitsSwapped(BitStruct(
 		"Batch" / Enum(Bit, Yes = 1 , No = 0),
 		Embedded(
 			IfThenElse(this.Batch == "Yes",
 				Struct(
-					"Size"	/BatchSize,
-					"New" / Enum(Bit, Yes = 1 , No = 0)
+					"Size"	/ BatchSize
 				),
 				Struct(
 					"NoHeaderPort" / Enum(Bit, Yes = 1 , No = 0),
@@ -796,9 +838,8 @@ Occurence = BitStruct(
 
 #########DECODAGE CAUSE REPORT ###############
 
-
-DataCauseN3 = Switch(
-	this._._._.AttributeType, {
+DataCause = Switch(
+	FindAttributeType, {
 		"Boolean"              : Flag,
 		"General8"             : Byte,
 		"General16"            : Bytes(2),
@@ -816,163 +857,69 @@ DataCauseN3 = Switch(
 		"Int32"                : Int32sb,
 		"UInt8Enum"            : Int8ub,
 		"SinglePrecision"      : Float32b,
-		"ByteString"           : 	Switch(this._._._.AttributeID, {
-										"CurrentMetering" : 
-											Switch(this.FieldIndex, {
-												0 : Int24sb,
-												1 : Int24sb,
-												2 : Int16ub,
-												3 : Int16ub,
-												4 : Int16ub
-											}
-											)
-										
-										
-										,
-										"NodePowerDescriptor" : 
-											Switch(this.FieldIndex, {
-												0 : Int8ub,
-												1 : Int8ub,
-												2 : Int16ub,
-												3 : Int16ub,
-												4 : Int16ub,
-												5 : Int16ub,
-												6 : Int16ub,
-											}
-											)
-										,
-									
-									},
-
-									default = Switch(this._._._._.ClusterID, {
-										"EnergyPowerMetering" : Int32ub ,
-										"VoltageCurrentMetering" : Int16ub
-										}	)	
-									)
-			
-
+		
+		"ByteString"           : Switch(
+			FindAttributeID, {
+				"CurrentMetering" : 
+					Switch(FindFieldIndex, {
+						0 : Int24sb,
+						1 : Int24sb,
+						2 : Int16ub,
+						3 : Int16ub,
+						4 : Int16ub
+					}),
+					
+				"PowerQuality" : 
+					Switch(FindFieldIndex, {
+						0 : Int16ub,
+						1 : Int16ub,
+						2 : Int16ub,
+						3 : Int16ub,
+						4 : Int16ub,
+						5 : Int16ub,
+						6 : Int16ub,
+						7 : Int16ub,
+						8 : Int16ub,
+						9 : Int16ub,
+						10 : Int16ub,
+						11 : Int16ub
+					}),
+					
+				"NodePowerDescriptor" : 
+					Switch(FindFieldIndex, {
+						0 : Int8ub,
+						1 : Int8ub,
+						2 : Int16ub,
+						3 : Int16ub,
+						4 : Int16ub,
+						5 : Int16ub,
+						6 : Int16ub,
+					}),
+			},
+			default = Switch(
+				FindClusterID, {
+					"EnergyPowerMetering" : Int32ub ,
+					"VoltageCurrentMetering" : Int16ub,
+					"XYZAcceleration" : Switch(
+						FindAttributeID,{
+							"Stats_X" : _XYZAccStatsType_,
+							"Stats_Y" : _XYZAccStatsType_,
+							"Stats_Z" : _XYZAccStatsType_,
+							"Last"    : _XYZAccLastType_
+						}, default = Error
+					)
+				}
+			)
+		)
 	},default = "Bytes" / BytesTostrHex
 )
 
-
-DataCauseN3_FieldIndexN1 = Switch(
-	this._._._._.AttributeType, {
-		"Boolean"              : Flag,
-		"General8"             : Byte,
-		"General16"            : Bytes(2),
-		"General24"            : Bytes(3),
-		"General32"            : Bytes(4),
-		"General40"            : Bytes(4),
-		"General48"            : Bytes(4),
-		"Bitmap8"              : BitStruct("b7" / BitsInteger(1),"b6" / BitsInteger(1),"b5" / BitsInteger(1),"b4" / BitsInteger(1),"b3" / BitsInteger(1),"b2" / BitsInteger(1),"b1" / BitsInteger(1),"b0" / BitsInteger(1)),
-		"Bitmap16"             : BitStruct("b15" / BitsInteger(1),"b14" / BitsInteger(1),"b13" / BitsInteger(1),"b12" / BitsInteger(1),"b11" / BitsInteger(1),"b10" / BitsInteger(1),"b9" / BitsInteger(1),"b8" / BitsInteger(1),"b7" / BitsInteger(1),"b6" / BitsInteger(1),"b5" / BitsInteger(1),"b4" / BitsInteger(1),"b3" / BitsInteger(1),"b2" / BitsInteger(1),"b1" / BitsInteger(1),"b0" / BitsInteger(1)),
-		"UInt8"                : Int8ub,
-		"UInt16"               : Int16ub,
-		"UInt32"               : Int32ub,
-		"Int8"                 : Int8sb,
-		"Int16"                : Int16sb,
-		"Int32"                : Int32sb,
-		"UInt8Enum"            : Int8ub,
-		"SinglePrecision"      : Float32b,
-		"ByteString"           : 	Switch(this._._._._.AttributeID, {
-										"CurrentMetering" : 
-											Switch(this._.FieldIndex, {
-												0 : Int24sb,
-												1 : Int24sb,
-												2 : Int16ub,
-												3 : Int16ub,
-												4 : Int16ub
-											}
-											)
-										
-										
-										,
-										"NodePowerDescriptor" : 
-											Switch(this._.FieldIndex, {
-												0 : Int8ub,
-												1 : Int8ub,
-												2 : Int16ub,
-												3 : Int16ub,
-												4 : Int16ub,
-												5 : Int16ub,
-												6 : Int16ub,
-											}
-											)
-									},
-
-									default = Switch(this._._._._._.ClusterID, {
-										"EnergyPowerMetering" : Int32ub ,
-										"VoltageCurrentMetering" : Int16ub
-										}	)								
-									
-									)
-									
-
-			
-									
-			
-
-	},default = "Bytes" / BytesTostrHex
-)
-
-DataCauseN4_FieldIndexN2 = Switch(
-		this._._._._.AttributeType, {
-		"Boolean"              : Flag,
-		"General8"             : Byte,
-		"General16"            : Bytes(2),
-		"General24"            : Bytes(3),
-		"General32"            : Bytes(4),
-		"General40"            : Bytes(4),
-		"General48"            : Bytes(4),
-		"Bitmap8"              : BitStruct("b7" / BitsInteger(1),"b6" / BitsInteger(1),"b5" / BitsInteger(1),"b4" / BitsInteger(1),"b3" / BitsInteger(1),"b2" / BitsInteger(1),"b1" / BitsInteger(1),"b0" / BitsInteger(1)),
-		"Bitmap16"             : BitStruct("b15" / BitsInteger(1),"b14" / BitsInteger(1),"b13" / BitsInteger(1),"b12" / BitsInteger(1),"b11" / BitsInteger(1),"b10" / BitsInteger(1),"b9" / BitsInteger(1),"b8" / BitsInteger(1),"b7" / BitsInteger(1),"b6" / BitsInteger(1),"b5" / BitsInteger(1),"b4" / BitsInteger(1),"b3" / BitsInteger(1),"b2" / BitsInteger(1),"b1" / BitsInteger(1),"b0" / BitsInteger(1)),
-		"UInt8"                : Int8ub,
-		"UInt16"               : Int16ub,
-		"UInt32"               : Int32ub,
-		"Int8"                 : Int8sb,
-		"Int16"                : Int16sb,
-		"Int32"                : Int32sb,
-		"UInt8Enum"            : Int8ub,
-		"SinglePrecision"      : Float32b,
-		"ByteString"           : 	Switch(this._._._._._.AttributeID, {
-										"CurrentMetering" : 
-											Switch(this._.FieldIndex, {
-												0 : Int24sb,
-												1 : Int24sb,
-												2 : Int16ub,
-												3 : Int16ub,
-												4 : Int16ub
-											}
-											)
-										
-										
-										,
-										"NodePowerDescriptor" : 
-											Switch(this._.FieldIndex, {
-												0 : Int8ub,
-												1 : Int8ub,
-												2 : Int16ub,
-												3 : Int16ub,
-												4 : Int16ub,
-												5 : Int16ub,
-												6 : Int16ub,
-											}
-											)
-									},
-
-									default = Switch(this._._._._._._.ClusterID, {
-										"EnergyPowerMetering" : Int32ub ,
-										"VoltageCurrentMetering" : Int16ub
-										}	)								
-									
-									)
-									
-
-			
-									
-			
-
-	},default = "Bytes" / BytesTostrHex
+#Optional FieldIndex used in Cause and Cause configuration
+OptionalFieldIndex = Embedded ( 
+	IfValueInListElse( FindAttributeType, 
+		["CharString", "ByteString", "LongByteString","StructOrderedSequence"]
+		, Struct("FieldIndex" / Int8ub), Pass
+	)
 )
 
 #decodage Cause dans report
@@ -982,19 +929,13 @@ Cause =  Struct(
 	 Embedded ( 
 		If ( (this._.ReportParameters.CauseRequest == "Long"),
 			Struct(
-				 Embedded ( 	If ( (this._._._.AttributeType == "CharString") |
-							    (this._._._.AttributeType  == "ByteString") |
-							    (this._._._.AttributeType  == "LongByteString") |
-							    (this._._._.AttributeType  == "StructOrderedSequence")
-									, Struct("FieldIndex" / Int8ub)
-							    )
-				 ),
-				"Value"/ DataCauseN3,
-				"Gap"/ DataCauseN3,
+				OptionalFieldIndex,
+				"Value"/ DataCause,
+				"Gap"/ DataCause,
 				"Occurence"/ Occurence
 			)
 		 )
-	),
+	)
 )
 
 #decodage Rp + Cause dans report
@@ -1002,8 +943,6 @@ CauseRP =  Struct(
 	 "ReportParameters" / ReportParameters,
 	 "SlotDescriptors" / GreedyRange(Cause), #repeat until EOF by parsing with argument file
 )
-
-
 
 
 ################# DECODAGE CAUSE CONFIGURATION ####################
@@ -1016,50 +955,27 @@ ActDesc = BitStruct(
 Action = Struct (
 	"AoD" / Enum(Byte, Action = 0 , Delay = 1, Sendbatch = 2, SendReport = 3),
 	Embedded ( 	If ( (this.AoD == "Action"), Struct("Index" / Byte) )	),
-	Embedded ( 	If ( (this.AoD == "Delay"), Struct("Delay" / MinMaxField) )	),
+	Embedded ( 	If ( (this.AoD == "Delay"), Struct("Delay" / MinOrSecU16) )	),
 ) 
  
  
 Actions = Struct( 	
-		"ActDesc" / ActDesc,
-		"Action" / Byte[this.ActDesc.Size],
-		#"Action" / Action[this.ActDesc.Size/2],
-		#"Action" / RepeatUntil(lambda obj,lst,ctx: , Action),
+	"ActDesc" / ActDesc,
+	"Action" / Byte[this.ActDesc.Size],
+	#"Action" / Action[this.ActDesc.Size/2],
+	#"Action" / RepeatUntil(lambda obj,lst,ctx: , Action),
 
-)
-
-#DataBatch
-ifBatch = Struct( 
-									"FieldIndex" / Int8ub,
-									"MinReport" / MinMaxField,
-									"MaxReport" / MinMaxField,
-									"Delta" / DataBatch,
-									"Resolution" / DataBatch,
-									"TagValue" / TagValue
-									
 )
 
 #decodage Cause dans Configuration
 CauseConfiguration =  Struct(
 	"CriteriaSlotDescriptor" / CriteriaSlotDescriptor,
-	Embedded ( 	If ( ((this._._._.AttributeType == "CharString") |
-					   (this._._._.AttributeType  == "ByteString") |
-					   (this._._._.AttributeType  == "LongByteString") |
-					   (this._._._.AttributeType  == "StructOrderedSequence")), Struct("FieldIndex" / Int8ub)
-					   )
-	),
-	Embedded ( 	If ( (1), Struct("Value"/DataCauseN4_FieldIndexN2)
-				   )
-	),	
-	Embedded ( 	If ( (this.CriteriaSlotDescriptor.Mode != "Delta"), Struct("Gap"/ DataCauseN4_FieldIndexN2)
-				   )
-	),		
-	Embedded ( 	If ( (this.CriteriaSlotDescriptor.Mode != "Delta"), Struct("Occurence"/ Occurence )
-				   )
-	),
-	
-	Embedded ( 	If ( (this.CriteriaSlotDescriptor.Mode == "ThresholdWithActions"), Struct("Actions" / Actions)
-				   )
-	),
+	OptionalFieldIndex,
+	Embedded ( 	If ( 1, Struct("Value"/DataCause)) ),
+	Embedded ( 	If ( this.CriteriaSlotDescriptor.Mode != "Delta", Struct("Gap"/ DataCause))),		
+	Embedded ( 	If ( this.CriteriaSlotDescriptor.Mode != "Delta", Struct("Occurence"/ Occurence ))),
+	Embedded ( 	If ( this.CriteriaSlotDescriptor.Mode == "ThresholdWithActions", 
+		Struct("Actions" / Actions)
+	)),
 )
 

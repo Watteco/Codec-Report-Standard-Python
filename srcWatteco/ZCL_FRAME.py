@@ -9,71 +9,75 @@ DataNew = Struct(
 	Embedded (If ((this._._.ReportParameters.New == "Yes") , Struct("Cause" / GreedyRange(CauseConfiguration))))
 )
 
+ReportConfiguration = Struct(
+	"ReportParameters" / ReportParameters,
+	OptionalTICAttributeInstance,
+	"AttributeID" / AttributeID,
+	Embedded(IfThenElse(this.ReportParameters.Batch == "Yes",
+		Struct(
+			"Batches" / GreedyRange(ifBatch),
+			#Below will detect error of batch constitution (remaining bytes after end of Batch fields parsing
+			Terminated
+		),						
+		Struct(
+			"AttributeType" / DataType,
+			"MinReport" / MinOrSecU16,
+			"MaxReport" / MinOrSecU16,
+			#if New configure report
+			Embedded ( 	IfThenElse ( 	((this.AttributeType == "CharString") |
+						(this.AttributeType  == "ByteString") |
+						(this.AttributeType  == "LongByteString") |
+						(this.AttributeType  == "StructOrderedSequence")) & (this._.ReportParameters.New == "Yes"),
+					Prefixed(Int8ub, DataNew),
+					DataNew
+				)
+			),
+			Embedded(If ((this._.ReportParameters.New == "No") ,Struct ("Data"/Data)))
+		)
+	))
+)
+
 #### FULL Standard frame description ####################e####
 STDFrame = Struct(
 	"FrameCtrl" / FrameCtrl,
 	"CommandID" / CommandID,
 	"ClusterID" / ClusterID,
-	
 	#Report
 	Embedded ( 
 		If ( ((this.CommandID == "ReportAttributesAlarm") |(this.CommandID == "ReportAttributes")),
-			Struct(		"AttributeID" / AttributeID,
-						"AttributeType" / DataType,
-						"Data" / Data,
-						"Cause" / GreedyRange(CauseRP)
+			Struct(
+				OptionalTICAttributeInstance,
+				"AttributeID" / AttributeID,
+				"AttributeType" / DataType,
+				"Data" / Data,
+				"Cause" / GreedyRange(CauseRP)
 			)
 		)
 	),
 	#configure reporting
 	Embedded ( 
 		If (this.CommandID == "ConfigureReporting" ,
-			Struct(		
-						"ReportParameters" / ReportParameters,
-						"AttributeID" / AttributeID,
-						Embedded(IfThenElse(this.ReportParameters.Batch == "Yes",
-								Struct(
-									"Batches"/GreedyRange(ifBatch) 
-								)						
-								,						
-								Struct(
-									"AttributeType" / DataType,
-									"MinReport" / MinMaxField,
-									"MaxReport" / MinMaxField,
-									#if New configure report
-									Embedded ( 	IfThenElse ( 	((this.AttributeType == "CharString") |
-												(this.AttributeType  == "ByteString") |
-												(this.AttributeType  == "LongByteString") |
-												(this.AttributeType  == "StructOrderedSequence")) & (this._.ReportParameters.New == "Yes"),
-											
-											Prefixed(Int8ub, DataNew),
-											DataNew
-										)
-									),
-									#if Old configure report
-									"Data" / If ((this._.ReportParameters.New == "No") ,  Data ),
-								)
-							)
-						)
-
-			)
+			ReportConfiguration
 		)
 	),
 	#configure reporting response
 	Embedded ( 
 		If ( ((this.CommandID == "ConfigureReportingResponse")),
-			Struct(		"Status" / Status,
-						"ReportParameters" / ReportParameters,
-						"AttributeID" / AttributeID,
+			Struct(		
+				"Status" / Status,
+				"ReportParameters" / ReportParameters,
+				OptionalTICAttributeInstance,
+				"AttributeID" / AttributeID
 			)
 		)
 	),
-	
 	#Read reporting Configuration
 	Embedded ( 
 		If ( (this.CommandID == "ReadReportingConfiguration"),
-			Struct(		"ReportParameters" / ReportParameters,
-						"AttributeID" / AttributeID
+			Struct(	
+				"ReportParameters" / ReportParameters,
+				OptionalTICAttributeInstance,
+				"AttributeID" / AttributeID
 			)
 		)
 	),
@@ -81,66 +85,61 @@ STDFrame = Struct(
 	Embedded ( 
 		If ( ((this.CommandID == "ReadReportingConfigurationResponse")),
 			Struct(	
-						"Status" / Status,
+				"Status" / Status,
+				Embedded(IfThenElse(this.Status == "OK",
+					ReportConfiguration,
+					Struct(
 						"ReportParameters" / ReportParameters,
-						"AttributeID" / AttributeID,
-						"AttributeType" / DataType,
-						"MinReport" / MinMaxField,
-						"MaxReport" / MinMaxField,
-						#if New configure report
-						Embedded ( 	IfThenElse ( 	((this.AttributeType == "CharString") |
-									(this.AttributeType  == "ByteString") |
-									(this.AttributeType  == "LongByteString") |
-									(this.AttributeType  == "StructOrderedSequence")) & (this.ReportParameters.New == "Yes"),
-								Prefixed(Int8ub, DataNew),
-								DataNew
-							)
-						),
-						#if Old configure report
-						"Data" / If ((this.ReportParameters.New == "No") ,  Data ),
+						OptionalTICAttributeInstance,
+						"AttributeID" / AttributeID
+					)
+				))
 			)
 		)
 	),
-	
-	
 	#Read Attribut request
 	Embedded ( 
 		If ( ((this.CommandID == "ReadAttribute")),
 			Struct(		
-						"AttributeID" / AttributeID,
+				OptionalTICAttributeInstance,
+				"AttributeID" / AttributeID,
 			)
 		)
 	),
-	
 	#Read Attribut response
 	Embedded ( 
 		If ( ((this.CommandID == "ReadAttributeResponse")),
-			Struct(		
-						"AttributeID" / AttributeID,
-						"Status" / Status,
+			Struct(	
+				OptionalTICAttributeInstance,
+				"AttributeID" / AttributeID,
+				"Status" / Status,
+				Embedded(IfThenElse(this.Status == "OK",
+					Struct(
 						"AttributeType" / DataType,
 						"Data" / Data
+					),
+					Pass,
+				))
 			)
 		)
 	),
-	
 	#Write Attribut no response
 	Embedded ( 
 		If ( ((this.CommandID == "WriteAttributeNoResponse")),
-			Struct(		
-						"AttributeID" / AttributeID,
-						"AttributeType" / DataType,
-						"Data" / Data
+			Struct(	
+				OptionalTICAttributeInstance,
+				"AttributeID" / AttributeID,
+				"AttributeType" / DataType,
+				"Data" / Data
 			)
 		)
 	),
-	
 	#Cluster Specific Command
 	Embedded ( 
 		If ( ((this.CommandID == "ClusterSpecificCommand")),
 			Struct(		
-						"Data" / GreedyRange(Byte)
+				"Data" / GreedyRange(Byte)
 			)
 		)
-	),
+	)
 )
