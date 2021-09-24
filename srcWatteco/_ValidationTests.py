@@ -7,15 +7,6 @@ from _TestsTools import *
 
 WTCParseInit()
 
-
-#TIC PMEPMI: Report avec anomalie Enum décalés de 1 (Bug sur firmwares: 3.5.0.4852 à 3.5.0.5339)
-WTCParseBuildTest(STDFrame,"110A005700004122680102030C28293706042036018312021709150A3B300D28D6B320005A320000300A")
-#Test avec prise en compte de l'anomalie, par passage de numéro de révision en paramètres 
-WTCParseBuildTest(STDFrame,"110A005700004122680102030C28293706042036018312021709150A3B300D28D6B320005A320000300A;testVar =  Hello, rev=5339 ")
-
-WTCParseConclude()
-exit(0)
-
 # XYZAcceleration
 WTCParseBuildTest(STDFrame, "11 05 800F 8000 41 17 0064 03E8 0003 1B58 0136 0136 0136 0000 03E8 4E20 90 03 07")
 WTCParseBuildTest(STDFrame, "1101800F80000041170064271000031B5800A000A00136000003E84E20901407")
@@ -135,6 +126,11 @@ WTCParseBuildTest(STDFrame,  "11 06 0053 81 0000 " +
 "29 0000 803C FFFF FFFE 23 " +
 "2A 0000 803C FFFD FFFC 2B " +
 "")
+
+#TIC PMEPMI: Report avec anomalie Enum décalés de 1 (Bug sur firmwares: 3.5.0.4852 à 3.5.0.5339)
+WTCParseBuildTest(STDFrame,"110A005700004122680102030C28293706042036018312021709150A3B300D28D6B320005A320000300A")
+#Test avec prise en compte de l'anomalie, par passage de numéro de révision en paramètres 
+WTCParseBuildTest(STDFrame,"110A005700004122680102030C28293706042036018312021709150A3B300D28D6B320005A320000300A;testVar =  Hello, rev=5339 ")
 
 
 #NOt already decoded frame 
