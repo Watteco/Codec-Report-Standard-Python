@@ -3,6 +3,53 @@ from construct import *
 import base64
 import binascii
 
+# patch Construct 2.8.12 ========================================================
+# patch update method from Container Class 
+def _patchFor_Container_update(self, seqordict, **kw):
+	if isinstance(seqordict, dict):
+		for k, v in seqordict.items():
+			"""
+			PEG Issue: https://github.com/construct/construct/issues/956
+			- Loosing initial context (like args = {'rev': '5339'}, passed from first "format.build(obj, args)")
+			- Using construct-2.8.12 ...  ;O|
+			- This happens on build not on parse 
+			- This happens on embeded subconst (Ok we should not use that ;O( ... 
+				but really to many dependent things to upgrade on 2.10 without embeded)
+			- When it happens, debugging the upper '_' member, seems to point on itself (circular reference). 
+				Consequently, its initial context (args) is lost
+
+			Code snippet that make the failing job:
+				from construct import *
+
+				FrameCtrl = Struct(	"EndPoint" / Byte )
+				STDFrameBuildFail = Struct(
+					"FrameCtrl" / Embedded(FrameCtrl),
+					"Value" / Computed(2*this._.var)
+				)
+
+				Args = dict(var=67)
+
+				# Works:
+				theObj=STDFrameBuildFail.parse(b'\x11\x02',Args)
+				print(theObj)
+
+				# FAILS because of embeded. won't fail if not present
+				theBytes=STDFrameBuildFail.build(theObj,Args)
+				print(theBytes)
+
+			Palliative that seems to work:
+			The single line below has been changed to avoid circular reference creation : 
+			self[k] = v
+			"""
+			if not(isinstance(v, Container) and k == '_' and self == v):
+				self[k] = v
+	else:
+		for k, v in seqordict:
+			self[k] = v
+	dict.update(self, kw)
+Container.update = _patchFor_Container_update
+#=============================================================================
+
 # For debug ...
 class PrintContext(Construct):
 	def _parse(self, stream, context, path):
@@ -113,7 +160,7 @@ def fullDictFind(key, myDict):
 
 def GetValueFromKeyLookUP(context, searchKey): 
 	# This order forces to find closest instance of searched key
-	intoList = [this, this._,this._._,this._._._, this._._._._, this._._._._._, this._._._._._._, this._root]
+	intoList = [this, this._,this._._,this._._._, this._._._._, this._._._._._, this._._._._._._, this._._._._._._._, this._._._._._._._._, this._root]
 	foundValue = ""
 	for item in intoList:
 		try:
