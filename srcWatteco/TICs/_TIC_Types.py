@@ -106,6 +106,7 @@ _E_DIV_STRINGS = [
  "  ACTIF","ACTIF","CONSO","CONTROLE","DEP","INACTIF","PROD","TEST","kVA","kW"]
  
 _E_STD_PT_STRINGS = [
+ "_Err","_AnyChange","_Empty",
  " ? ",
  "000", "HC", "HCD", "HCE", "HCH", "HH", "HH ", "HP", "HP ",
  "HPD", "HPE","HPH", "JA", "JA ",  "P","P  ", "PM",   "PM ", "XXX",
@@ -114,6 +115,7 @@ _E_STD_PT_STRINGS = [
  "HEURE WEEK-END"]
 
 _E_STD_CONTRAT_STRINGS = [
+ "_Err","_AnyChange","_Empty",
  "BT 4 SUP36", "BT 5 SUP36", "HTA 5     ", "HTA 8     ",
  "TJ EJP    ", "TJ EJP-HH ", "TJ EJP-PM ", "TJ EJP-SD ", "TJ LU     ",
  "TJ LU-CH  ", "TJ LU-P   ", "TJ LU-PH  ", "TJ LU-SD  ", "TJ MU     ",
