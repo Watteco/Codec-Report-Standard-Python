@@ -5,7 +5,7 @@ import sys
 		
 ##### TIC Attribute ID #####################################
 # Specific for TIC attribute: <Intance u8><Attribute ID u8>
-TICAttributeID = IfThenElse (this._.ClusterID == "TIC_ICE",
+TICAttributeID = IfStrStartWithElse(FindClusterID,"TIC_ICE",
 	Enum (Int8ub,
 		General = 0x00,
 		ICEp    = 0x01,
@@ -19,8 +19,7 @@ TICAttributeID = IfThenElse (this._.ClusterID == "TIC_ICE",
 OptionalTICAttributeInstance = Embedded (
 	IfStrStartWithElse(FindClusterID,"TIC_",
 		Struct (
-			"Instance" / Int8ub,
-			Check( ( this.Instance < 6) or ((this.Instance < 2) and (FindClusterID == "TIC_ICE")))
+			"Instance" / Int8ub
 		),
 		Pass
 	)
@@ -48,6 +47,10 @@ TICDescHeader = BitStruct(
 def _TICDescIndexesToBitsfield(InByteArray):
 	# format input : list of int (indexes)
 	# format output : array of bytes with bits set in position of indexes
+	
+	# return an empty bytearray if list is empty
+	if not InByteArray: return bytearray()
+
 	result = bytearray((max(InByteArray) // 8) + 1)
 	
 	for val in InByteArray:
