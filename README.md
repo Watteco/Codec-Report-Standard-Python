@@ -18,6 +18,10 @@ Need Python 3.6 or Upper
 	- go to construct-2.8.12/
 	- command to execute: py setup.py install
 
+Could also be installed with pip:
+	- pip install dicttoxml==1.7.4 
+	- pip install construct==2.8.12 
+
 Run the decoding:
 -----------------
 . Go to srcWatteco/
