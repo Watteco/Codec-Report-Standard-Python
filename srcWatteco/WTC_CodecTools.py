@@ -4,6 +4,14 @@ import base64
 import binascii
 
 # patch Construct 2.8.12 ========================================================
+
+# patch 'Sequence' access : form 2.7 to 3.9 collections.Sequence THEN from 3.10 collections.abc.sequence
+# Beware This is a basic patch as Sequence very few used in construct... maybe no functionnal for other usages
+import collections
+import sys
+if sys.version_info >= (3,10):
+	collections.Sequence = collections.abc.Sequence
+
 # patch update method from Container Class 
 def _patchFor_Container_update(self, seqordict, **kw):
 	if isinstance(seqordict, dict):
