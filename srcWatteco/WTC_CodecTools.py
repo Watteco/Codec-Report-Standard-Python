@@ -189,6 +189,11 @@ def GetValueFromKeyLookUP(context, searchKey):
 def processHexMsgAndArgsString(hexAndArgsStr):
 	# Process input hexadecimal string with name parameters as suffix ZCL.Parse(binMsg,args):
 	# "110000500004;param=1,otherparam=toto" 
+	
+	#Convert ByteArray to string if needed (For exeample, in cases where data is comming from sockets)
+	if (isinstance(hexAndArgsStr, (bytes, bytearray))):
+		hexAndArgsStr = bytes(hexAndArgsStr).decode()
+		
 	inputs = hexAndArgsStr.split(';')
 	hexMsgInP = inputs[0].strip()
 	args={}
