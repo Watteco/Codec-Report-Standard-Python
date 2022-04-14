@@ -194,12 +194,24 @@ def processHexMsgAndArgsString(hexAndArgsStr):
 	if (isinstance(hexAndArgsStr, (bytes, bytearray))):
 		hexAndArgsStr = bytes(hexAndArgsStr).decode()
 		
-	inputs = hexAndArgsStr.split(';')
-	hexMsgInP = inputs[0].strip()
 	args={}
-	if (len(inputs) > 1) :
-		# Créé un dictionnaire d'argument nommés en supprimant les banc autour des "," ou "="
-		args = dict([x.strip() for x in e.split('=')] for e in inputs[1].split(','))
+	try:
+		inputs = hexAndArgsStr.split(';')
+		hexMsgInP = inputs[0].strip()
+		args={}
+		if (len(inputs) > 1):
+			if (len(inputs[1].strip()) > 0):
+				# Créé un dictionnaire d'argument nommés en supprimant les banc autour des "," ou "="
+				args = dict([x.strip() for x in e.split('=')] for e in inputs[1].split(','))
+	except Exception as e:
+		print("{\"ParametersOrDecodingError\":{\n  \"DtaToProcess\": \"" + hexAndArgsStr + "\", \n  \"Exception\":\"" + str(e) + "\"}}")
+		print (
+			"Args error: " + hexAndArgsStr + "\n"
+			"  Expected Args format : <HexFramePayload>[;lll=vvv[,lll=vvv]*] "
+		)
+		raise 
+		# print (" " )
+		# print (e)
 	return (hexMsgInP,args)
 
 ##### Typicall searched ZCL objects
