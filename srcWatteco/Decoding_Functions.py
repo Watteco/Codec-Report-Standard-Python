@@ -57,7 +57,7 @@ def Decoding_JSON(trame, OnStdOut, OutPutProcessingFunction = None):
 			sys.stdout.write("A problem occured while trying to decode the frame. Please check the frame and try again.")
 	else:
 		try:
-			decodedResult = STDFrame.parse(unhexlify(trame))
+			decodedResult = STDFrame.parse(unhexlify(trame), args)
 			if (OutPutProcessingFunction is not None): decodedResult = OutPutProcessingFunction(decodedResult)
 			
 			StringToReturn = json.dumps(decodedResult,indent=1)
