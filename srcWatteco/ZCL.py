@@ -222,8 +222,8 @@ DataBatch = Switch(
 		"Configuration" : Switch(
 			FindAttributeID,{
 				"NodePowerDescriptor" :  Switch(FindFieldIndex, {
-					0 : Int8ub,
-					1 : Int8ub,
+					0 : Int16ub,
+					1 : Int16ub,
 					2 : Int16ub,
 					3 : Int16ub,
 					4 : Int16ub,
