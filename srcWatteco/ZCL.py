@@ -753,10 +753,7 @@ Data = Switch(
 	},default = "Bytes" / BytesTostrHex
 )
 
-
-
 #### TagValue ##############################
-
 
 TagValue = BitStruct(
 	"TagLabel" / BitsInteger(5),
@@ -768,24 +765,24 @@ TagValue = BitStruct(
 ########################################################
 
 
+# Since New configuration possible only 6 bit available for <Size>.
+# The <RP> byte structure is: <New(1|0)><BatchSize><Batch(1)> 
+# The Adapter must become:
+# 0 0 1 2 3 4 5 6 ==> 0 0 6 5 4 3 2 1
 class BatchSizeAdapter(Adapter):
 	# revert the size in configure batch cause we swapped it
 	
 	def _encode(self, obj, context):
-		return( obj&0x08 |
-			(obj&0x01)<<6 | (obj&0x02)<<4 | (obj&0x04)<<2 |
-			(obj&0x10)>>2 | (obj&0x20)>>4 | (obj&0x40)>>6 ) 
+		return(  (obj&0x20)>>5 | (obj&0x10)>>3 | (obj&0x08)>>1 | (obj&0x04)<<1 | (obj&0x02)<<3 | (obj&0x01)<<5 ) 
 
 		
 	def _decode(self, obj, context):
-		return( obj&0x08 |
-			(obj&0x01)<<6 | (obj&0x02)<<4 | (obj&0x04)<<2 |
-			(obj&0x10)>>2 | (obj&0x20)>>4 | (obj&0x40)>>6 ) 
+		return(  (obj&0x20)>>5 | (obj&0x10)>>3 | (obj&0x08)>>1 | (obj&0x04)<<1 | (obj&0x02)<<3 | (obj&0x01)<<5 ) 
 
-
-BatchSize = BatchSizeAdapter(BitsInteger(7))
+BatchSize = BatchSizeAdapter(BitsInteger(6))
 
 #DataBatch
+#OldZCL: <EP>0x06<CID><RPBatch >   <AID> [<FID><MinRpt><MaxRpt><Val><Res><Tag>]*
 ifBatch = Struct(
 	"FieldIndex" / Int8ub,
 	"MinReport" / MinOrSecU16,
@@ -800,7 +797,8 @@ ReportParameters = BitsSwapped(BitStruct(
 		Embedded(
 			IfThenElse(this.Batch == "Yes",
 				Struct(
-					"Size"	/ BatchSize
+					"Size"	/ BatchSize,
+					"New" / Enum(Bit, Yes = 1 , No = 0)
 				),
 				Struct(
 					"NoHeaderPort" / Enum(Bit, Yes = 1 , No = 0),
@@ -922,6 +920,25 @@ OptionalFieldIndex = Embedded (
 	)
 )
 
+
+#Optional FieldIndex used inbatch configuration
+OptionalFieldIndexBatchConfig = Embedded ( 
+	Switch (
+		FindClusterID, {
+			"SimpleMetering" : 	IfValueInListElse( FindAttributeID, ["CurrentMetering"], Struct("FieldIndex" / Int8ub), Pass ),
+			"PowerQuality" : 	IfValueInListElse( FindAttributeID, ["CurrentValues"], Struct("FieldIndex" / Int8ub), Pass ),
+			"Configuration" : 	IfValueInListElse( FindAttributeID, ["NodePowerDescriptor"], Struct("FieldIndex" / Int8ub), Pass ),
+			"EnergyPowerMetering" : 	IfValueInListElse( FindAttributeID, ["PresentValues"], Struct("FieldIndex" / Int8ub), Pass ),
+			"VoltageCurrentMetering" : 	IfValueInListElse( FindAttributeID, ["PresentValues"], Struct("FieldIndex" / Int8ub), Pass ),
+			"TIC_CBE" : 	IfValueInListElse( FindAttributeID, ["General"], Struct("FieldIndex" / Int8ub), Pass ),
+			"TIC_STD" : 	IfValueInListElse( FindAttributeID, ["General"], Struct("FieldIndex" / Int8ub), Pass ),
+			"TIC_PMEPMI" : 	IfValueInListElse( FindAttributeID, ["General"], Struct("FieldIndex" / Int8ub), Pass ),
+			"TIC_ICE" : 	IfValueInListElse( FindAttributeID, ["General","ICEp","ICEpm1"], Struct("FieldIndex" / Int8ub), Pass ),
+			"XYZAcceleration" : 	IfValueInListElse( FindAttributeID, ["Stats_X","Stats_Y","Stats_Z","Last"], Struct("FieldIndex" / Int8ub), Pass )	
+		}, default = Pass
+	)
+)
+
 #decodage Cause dans report
 Cause =  Struct(
 	 "CriteriaSlotDescriptor" / CriteriaSlotDescriptor,
@@ -979,3 +996,25 @@ CauseConfiguration =  Struct(
 	)),
 )
 
+
+#Encodage Slot Batch
+SlotConfigurationBatch =  Struct(
+	"CriteriaSlotDescriptor" / CriteriaSlotDescriptor,
+	Embedded ( 	If ( 1, Struct("Value"/DataBatch)) ),
+	Embedded ( 	If ( this.CriteriaSlotDescriptor.Mode != "Delta", Struct("Gap"/ DataBatch))),		
+	Embedded ( 	If ( this.CriteriaSlotDescriptor.Mode != "Delta", Struct("Occurence"/ Occurence ))),
+	Embedded ( 	If ( this.CriteriaSlotDescriptor.Mode == "ThresholdWithActions", Error))
+)
+
+
+#DataBatchNew
+#NewZCL: <EP>0x06<CID><RPBatchNew ><AID>[[<FID>]<MinRpt><MaxRpt><nbSlots>{<CSD><Val>[<Gap><Occ>]}+<Res><Tag>]+
+ifBatchNew = Struct(
+	"FieldIndex" / OptionalFieldIndexBatchConfig,
+	"MinReport" / MinOrSecU16,
+	"MaxReport" / MinOrSecU16,
+	"NbSlots" / Int8ub,
+	"Slots" / Array(this.NbSlots,SlotConfigurationBatch),
+	"Resolution" / DataBatch,
+	"TagValue" / TagValue
+)

@@ -15,9 +15,18 @@ ReportConfiguration = Struct(
 	"AttributeID" / AttributeID,
 	Embedded(IfThenElse(this.ReportParameters.Batch == "Yes",
 		Struct(
-			"Batches" / GreedyRange(ifBatch),
-			#Below will detect error of batch constitution (remaining bytes after end of Batch fields parsing
-			Terminated
+			Embedded( IfThenElse(this._.ReportParameters.New == "Yes",
+				Struct (
+					"Batches" / GreedyRange(ifBatchNew),
+					#Below will detect error of batch constitution (remaining bytes after end of Batch fields parsing
+					Terminated
+				),
+				Struct (
+					"Batches" / GreedyRange(ifBatch),
+					#Below will detect error of batch constitution (remaining bytes after end of Batch fields parsing
+					Terminated
+				)
+			))
 		),						
 		Struct(
 			"AttributeType" / DataType,
