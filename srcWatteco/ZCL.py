@@ -518,7 +518,8 @@ AttributeID = Switch(
 		"TIC_PMEPMI": TICAttributeID,
 		"EnergyPowerMetering": Enum (Int16ub,
 			PresentValues        = 0x0000,
-			PeriodicityAverage   = 0x0001,
+			MeanPowerDelay   = 0x0001,
+			EnergiesUnit	= 0x0002,
 			default =  "_UNKNOWN_"
 		),
 		"VoltageCurrentMetering": Enum (Int16ub,
