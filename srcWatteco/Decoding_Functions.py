@@ -86,7 +86,7 @@ def Decoding_JSON_VERIF(trame):
 
 def Encoding_JSON(trame):	
 	trame = bytearray(STDFrame.build(json.loads(trame)))
-	if((trame[4])&1 != 0):
+	if(trame[1] == 6 and (trame[4])&1 != 0 and trame[4] != 255):
 		trame[4] = ((len(trame)-7) << 1) + 1
 	print(hexlify(trame))
 
