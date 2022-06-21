@@ -249,6 +249,11 @@ DataBatch = Switch(
 				"PresentValues" :  Int16ub
 			}, default               = Pass
 		),
+		"VoltageCurrentMultiMetering" : Switch(
+			FindAttributeID,{
+				"PresentValues" :  Int16ub
+			}, default               = Pass
+		),
 		"Concentration" :	Switch(
 			FindAttributeID,{
 				"MeasuredValue" :  Int16ub,
@@ -347,6 +352,7 @@ ClusterID = Enum(Int16ub,
 	EnergyPowerMetering    = 0x800A,
 	VoltageCurrentMetering = 0x800B,
 	Concentration     = 0x800C,
+	VoltageCurrentMultiMetering = 0x800D,
 	XYZAcceleration   = 0x800F,
 	default           = "_UNKNOWN_"
 )
@@ -523,6 +529,10 @@ AttributeID = Switch(
 			default =  "_UNKNOWN_"
 		),
 		"VoltageCurrentMetering": Enum (Int16ub,
+			PresentValues        = 0x0000,
+			default =  "_UNKNOWN_"
+		),
+        "VoltageCurrentMultiMetering": Enum (Int16ub,
 			PresentValues        = 0x0000,
 			default =  "_UNKNOWN_"
 		),
@@ -704,6 +714,18 @@ Data = Switch(
 								"Angle" / Int16ub
 							),
 							
+                            "VoltageCurrentMultiMetering" : Struct(
+								"VrmsA" / Int16ub, 
+								"IrmsA" / Int16ub,
+								"AngleA" / Int16ub,
+								"VrmsB" / Int16ub, 
+								"IrmsB" / Int16ub,
+								"AngleB" / Int16ub,
+								"VrmsC" / Int16ub, 
+								"IrmsC" / Int16ub,
+								"AngleC" / Int16ub
+							),
+
 							"MultiMasterSlave" : Switch(FindCommandID, {
 									"ReportAttributes" : 					
 									Struct(
@@ -899,6 +921,7 @@ DataCause = Switch(
 				FindClusterID, {
 					"EnergyPowerMetering" : Int32ub ,
 					"VoltageCurrentMetering" : Int16ub,
+					"VoltageCurrentMultiMetering" : Int16ub,
 					"XYZAcceleration" : Switch(
 						FindAttributeID,{
 							"Stats_X" : _XYZAccStatsType_,
@@ -931,6 +954,7 @@ OptionalFieldIndexBatchConfig = Embedded (
 			"Configuration" : 	IfValueInListElse( FindAttributeID, ["NodePowerDescriptor"], Struct("FieldIndex" / Int8ub), Pass ),
 			"EnergyPowerMetering" : 	IfValueInListElse( FindAttributeID, ["PresentValues"], Struct("FieldIndex" / Int8ub), Pass ),
 			"VoltageCurrentMetering" : 	IfValueInListElse( FindAttributeID, ["PresentValues"], Struct("FieldIndex" / Int8ub), Pass ),
+			"VoltageCurrentMultiMetering" : IfValueInListElse( FindAttributeID, ["PresentValues"], Struct("FieldIndex" / Int8ub), Pass ),
 			"TIC_CBE" : 	IfValueInListElse( FindAttributeID, ["General"], Struct("FieldIndex" / Int8ub), Pass ),
 			"TIC_STD" : 	IfValueInListElse( FindAttributeID, ["General"], Struct("FieldIndex" / Int8ub), Pass ),
 			"TIC_PMEPMI" : 	IfValueInListElse( FindAttributeID, ["General"], Struct("FieldIndex" / Int8ub), Pass ),
