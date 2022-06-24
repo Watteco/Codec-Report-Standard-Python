@@ -212,13 +212,11 @@ DataBatch = Switch(
 				"Count" :  Int32ub
 			}, default = Pass
 		),
-		
 #		"MultiStateOutput" : Switch(
 #			FindAttributeID,{
 #				"PresentValue" : Unsigned 8 bits integer
 #			}
 #		),
-
 		"Configuration" : Switch(
 			FindAttributeID,{
 				"NodePowerDescriptor" :  Switch(FindFieldIndex, {
@@ -232,16 +230,20 @@ DataBatch = Switch(
 				})
 			}, default = Pass
 		),
-		
 #		"VolumeMeter" : Switch(
 #			FindAttributeID,{
 #				"Volume" : signed int l32
 #			}
 #		),
-
 		"EnergyPowerMetering" : Switch(
 			FindAttributeID,{
 				"PresentValues" :  Int32ub
+			}, default               = Pass
+		),
+		"EnergyPowerMultiMetering" : Switch(
+			FindAttributeID,{
+				"EnergyPresentValues" :  Int32ub,
+				"PowerPresentValues" :  Int32ub
 			}, default               = Pass
 		),
 		"VoltageCurrentMetering" : Switch(
@@ -344,6 +346,7 @@ ClusterID = Enum(Int16ub,
 	SerialMasterSlave = 0x8007,
 	DifferentialPressure = 0x8008,
 	MultiMasterSlave  = 0x8009,
+	EnergyPowerMultiMetering = 0x8010,
 	TIC_ICE           = 0x0053,
 	TIC_CBE           = 0x0054,
 	TIC_CJE           = 0x0055,
@@ -528,6 +531,13 @@ AttributeID = Switch(
 			EnergiesUnit	= 0x0002,
 			default =  "_UNKNOWN_"
 		),
+		"EnergyPowerMultiMetering": Enum (Int16ub,
+			EnergyPresentValues        = 0x0000,
+			PowerPresentValues        = 0x0001,
+			MeanPowerDelay   = 0x0002,
+			EnergiesUnit	= 0x0003,
+			default =  "_UNKNOWN_"
+		),
 		"VoltageCurrentMetering": Enum (Int16ub,
 			PresentValues        = 0x0000,
 			default =  "_UNKNOWN_"
@@ -708,6 +718,30 @@ Data = Switch(
 								"NegativeReActivePower" / Int32ub
 							),
 							
+							"EnergyPowerMultiMetering" : Switch(FindAttributeID, {
+									"EnergyPresentValues" : 					
+										Struct(
+											"ActiveEnergyPhaseA" / Int32ub, 
+											"ReActiveEnergyPhaseA" / Int32ub, 
+											"ActiveEnergyPhaseB" / Int32ub, 
+											"ReActiveEnergyPhaseB" / Int32ub, 
+											"ActiveEnergyPhaseC" / Int32ub, 
+											"ReActiveEnergyPhaseC" / Int32ub
+										),
+									"PowerPresentValues" : 					
+										Struct(
+											"ActivePowerPhaseA" / Int32ub, 
+											"ReActivePowerPhaseA" / Int32ub, 
+											"ActivePowerPhaseB" / Int32ub, 
+											"ReActivePowerPhaseB" / Int32ub, 
+											"ActivePowerPhaseC" / Int32ub, 
+											"ReActivePowerPhaseC" / Int32ub
+										)
+								}, default = Struct(
+									"ActiveEnergyPhaseA" / Int32ub, #je peux mettre quoi d'autre ?
+								)
+							),
+
 							"VoltageCurrentMetering" : Struct(
 								"Vrms" / Int16ub, 
 								"Irms" / Int16ub,
@@ -920,6 +954,7 @@ DataCause = Switch(
 			default = Switch(
 				FindClusterID, {
 					"EnergyPowerMetering" : Int32ub ,
+					"EnergyMultiMetering" : Int32ub ,
 					"VoltageCurrentMetering" : Int16ub,
 					"VoltageCurrentMultiMetering" : Int16ub,
 					"XYZAcceleration" : Switch(
@@ -953,6 +988,7 @@ OptionalFieldIndexBatchConfig = Embedded (
 			"PowerQuality" : 	IfValueInListElse( FindAttributeID, ["CurrentValues"], Struct("FieldIndex" / Int8ub), Pass ),
 			"Configuration" : 	IfValueInListElse( FindAttributeID, ["NodePowerDescriptor"], Struct("FieldIndex" / Int8ub), Pass ),
 			"EnergyPowerMetering" : 	IfValueInListElse( FindAttributeID, ["PresentValues"], Struct("FieldIndex" / Int8ub), Pass ),
+			"EnergyPowerMultiMetering" : 	IfValueInListElse( FindAttributeID, ["PresentValues"], Struct("FieldIndex" / Int8ub), Pass ), ###################MODIFIER AttributeID###################
 			"VoltageCurrentMetering" : 	IfValueInListElse( FindAttributeID, ["PresentValues"], Struct("FieldIndex" / Int8ub), Pass ),
 			"VoltageCurrentMultiMetering" : IfValueInListElse( FindAttributeID, ["PresentValues"], Struct("FieldIndex" / Int8ub), Pass ),
 			"TIC_CBE" : 	IfValueInListElse( FindAttributeID, ["General"], Struct("FieldIndex" / Int8ub), Pass ),
