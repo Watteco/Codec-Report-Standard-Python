@@ -721,21 +721,21 @@ Data = Switch(
 							"EnergyPowerMultiMetering" : Switch(FindAttributeID, {
 									"EnergyPresentValues" : 					
 										Struct(
-											"ActiveEnergyPhaseA" / Int32ub, 
-											"ReActiveEnergyPhaseA" / Int32ub, 
-											"ActiveEnergyPhaseB" / Int32ub, 
-											"ReActiveEnergyPhaseB" / Int32ub, 
-											"ActiveEnergyPhaseC" / Int32ub, 
-											"ReActiveEnergyPhaseC" / Int32ub
+											"ActiveEnergyPhaseA" / Int32sb, 
+											"ReActiveEnergyPhaseA" / Int32sb, 
+											"ActiveEnergyPhaseB" / Int32sb, 
+											"ReActiveEnergyPhaseB" / Int32sb, 
+											"ActiveEnergyPhaseC" / Int32sb, 
+											"ReActiveEnergyPhaseC" / Int32sb
 										),
 									"PowerPresentValues" : 					
 										Struct(
-											"ActivePowerPhaseA" / Int32ub, 
-											"ReActivePowerPhaseA" / Int32ub, 
-											"ActivePowerPhaseB" / Int32ub, 
-											"ReActivePowerPhaseB" / Int32ub, 
-											"ActivePowerPhaseC" / Int32ub, 
-											"ReActivePowerPhaseC" / Int32ub
+											"ActivePowerPhaseA" / Int32sb, 
+											"ReActivePowerPhaseA" / Int32sb, 
+											"ActivePowerPhaseB" / Int32sb, 
+											"ReActivePowerPhaseB" / Int32sb, 
+											"ActivePowerPhaseC" / Int32sb, 
+											"ReActivePowerPhaseC" / Int32sb
 										)
 								}, default = Struct(
 									"ActiveEnergyPhaseA" / Int32ub, #je peux mettre quoi d'autre ?
