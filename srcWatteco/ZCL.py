@@ -954,7 +954,7 @@ DataCause = Switch(
 			default = Switch(
 				FindClusterID, {
 					"EnergyPowerMetering" : Int32ub ,
-					"EnergyMultiMetering" : Int32ub ,
+					"EnergyPowerMultiMetering" : Int32sb ,
 					"VoltageCurrentMetering" : Int16ub,
 					"VoltageCurrentMultiMetering" : Int16ub,
 					"XYZAcceleration" : Switch(
