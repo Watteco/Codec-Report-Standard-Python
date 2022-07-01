@@ -726,7 +726,9 @@ Data = Switch(
 											"ActiveEnergyPhaseB" / Int32sb, 
 											"ReActiveEnergyPhaseB" / Int32sb, 
 											"ActiveEnergyPhaseC" / Int32sb, 
-											"ReActiveEnergyPhaseC" / Int32sb
+											"ReActiveEnergyPhaseC" / Int32sb, 
+											"ActiveEnergyPhaseABC" / Int32sb, 
+											"ReActiveEnergyPhaseABC" / Int32sb
 										),
 									"PowerPresentValues" : 					
 										Struct(
@@ -735,10 +737,12 @@ Data = Switch(
 											"ActivePowerPhaseB" / Int32sb, 
 											"ReActivePowerPhaseB" / Int32sb, 
 											"ActivePowerPhaseC" / Int32sb, 
-											"ReActivePowerPhaseC" / Int32sb
+											"ReActivePowerPhaseC" / Int32sb, 
+											"ActivePowerPhaseABC" / Int32sb, 
+											"ReActivePowerPhaseABC" / Int32sb
 										)
 								}, default = Struct(
-									"ActiveEnergyPhaseA" / Int32ub, #je peux mettre quoi d'autre ?
+									"Bytes" / BytesTostrHex
 								)
 							),
 
