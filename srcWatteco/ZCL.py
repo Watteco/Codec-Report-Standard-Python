@@ -242,8 +242,8 @@ DataBatch = Switch(
 		),
 		"EnergyPowerMultiMetering" : Switch(
 			FindAttributeID,{
-				"EnergyPresentValues" :  Int32ub,
-				"PowerPresentValues" :  Int32ub
+				"EnergyPresentValues" :  Int32sb,
+				"PowerPresentValues" :  Int32sb
 			}, default               = Pass
 		),
 		"VoltageCurrentMetering" : Switch(
@@ -253,7 +253,7 @@ DataBatch = Switch(
 		),
 		"VoltageCurrentMultiMetering" : Switch(
 			FindAttributeID,{
-				"PresentValues" :  Int16ub
+				"PresentValues" :  Int16sb
 			}, default               = Pass
 		),
 		"Concentration" :	Switch(
@@ -531,7 +531,7 @@ AttributeID = Switch(
 			EnergiesUnit	= 0x0002,
 			default =  "_UNKNOWN_"
 		),
-		"EnergyPowerMultiMetering": Enum (Int16ub,
+		"EnergyPowerMultiMetering": Enum (Int16sb,
 			EnergyPresentValues        = 0x0000,
 			PowerPresentValues        = 0x0001,
 			MeanPowerDelay   = 0x0002,
@@ -542,7 +542,7 @@ AttributeID = Switch(
 			PresentValues        = 0x0000,
 			default =  "_UNKNOWN_"
 		),
-        "VoltageCurrentMultiMetering": Enum (Int16ub,
+        "VoltageCurrentMultiMetering": Enum (Int16sb,
 			PresentValues        = 0x0000,
 			default =  "_UNKNOWN_"
 		),
@@ -753,15 +753,15 @@ Data = Switch(
 							),
 							
                             "VoltageCurrentMultiMetering" : Struct(
-								"VrmsA" / Int16ub, 
-								"IrmsA" / Int16ub,
-								"AngleA" / Int16ub,
-								"VrmsB" / Int16ub, 
-								"IrmsB" / Int16ub,
-								"AngleB" / Int16ub,
-								"VrmsC" / Int16ub, 
-								"IrmsC" / Int16ub,
-								"AngleC" / Int16ub
+								"VrmsA" / Int16sb, 
+								"IrmsA" / Int16sb,
+								"AngleA" / Int16sb,
+								"VrmsB" / Int16sb, 
+								"IrmsB" / Int16sb,
+								"AngleB" / Int16sb,
+								"VrmsC" / Int16sb, 
+								"IrmsC" / Int16sb,
+								"AngleC" / Int16sb
 							),
 
 							"MultiMasterSlave" : Switch(FindCommandID, {
@@ -960,7 +960,7 @@ DataCause = Switch(
 					"EnergyPowerMetering" : Int32ub ,
 					"EnergyPowerMultiMetering" : Int32sb ,
 					"VoltageCurrentMetering" : Int16ub,
-					"VoltageCurrentMultiMetering" : Int16ub,
+					"VoltageCurrentMultiMetering" : Int16sb,
 					"XYZAcceleration" : Switch(
 						FindAttributeID,{
 							"Stats_X" : _XYZAccStatsType_,
@@ -992,7 +992,7 @@ OptionalFieldIndexBatchConfig = Embedded (
 			"PowerQuality" : 	IfValueInListElse( FindAttributeID, ["CurrentValues"], Struct("FieldIndex" / Int8ub), Pass ),
 			"Configuration" : 	IfValueInListElse( FindAttributeID, ["NodePowerDescriptor"], Struct("FieldIndex" / Int8ub), Pass ),
 			"EnergyPowerMetering" : 	IfValueInListElse( FindAttributeID, ["PresentValues"], Struct("FieldIndex" / Int8ub), Pass ),
-			"EnergyPowerMultiMetering" : 	IfValueInListElse( FindAttributeID, ["PresentValues"], Struct("FieldIndex" / Int8ub), Pass ), ###################MODIFIER AttributeID###################
+			"EnergyPowerMultiMetering" : 	IfValueInListElse( FindAttributeID, ["PresentValues"], Struct("FieldIndex" / Int8ub), Pass ),
 			"VoltageCurrentMetering" : 	IfValueInListElse( FindAttributeID, ["PresentValues"], Struct("FieldIndex" / Int8ub), Pass ),
 			"VoltageCurrentMultiMetering" : IfValueInListElse( FindAttributeID, ["PresentValues"], Struct("FieldIndex" / Int8ub), Pass ),
 			"TIC_CBE" : 	IfValueInListElse( FindAttributeID, ["General"], Struct("FieldIndex" / Int8ub), Pass ),
