@@ -7,6 +7,11 @@ from _TestsTools import *
 
 WTCParseInit()
 
+# Voltage-current-Metering
+WTCParseBuildTest(STDFrame, "110A800B00004106000000000112",PRINT_JSON_IF_OK=True)
+# Voltage-current-multi_Metering
+WTCParseBuildTest(STDFrame, "110A800D00004112000000000112000000000000000000000000",PRINT_JSON_IF_OK=True)
+
 ## Various Concentration cluster actions
 # Read Unit
 WTCParseBuildTest(STDFrame, "11 01 800C 8004 00 20 06")
