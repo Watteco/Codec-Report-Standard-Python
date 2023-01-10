@@ -24,10 +24,22 @@ Status = Enum(Int8ub,
 	InvalidValue                 = 0x88,
 	InsufficientSpace            = 0x89,
 	UnreportableAttribute        = 0x8c,
+	BadPort                      = 0x8d,
+	FrameToShort                 = 0x8e,
+	FrameToLong                  = 0x8f,
+	UnsupportedType              = 0x90,
+	BadMode                      = 0x91,
+	BaUnsuportedSlot             = 0x92,
+	BadEvent                     = 0x93,
+	NotAvailableAction           = 0x94,
+	UnsupportedOccurence         = 0x95,
+	ReadOnly                     = 0x96,
+	BatchReportNotConfigured     = 0xc1,
 	BatchReportNoFreeSlot        = 0xc2,
 	BatchReportInvalidTag        = 0xc3,
 	BatchReportDuplicateTagLabel = 0xc4,
 	BatchReportLabelOutOfRange   = 0xc5,
+	BatchReportNoChange          = 0xc6,
 	default                      = Pass
 )
 
@@ -57,6 +69,77 @@ DataType = Enum(Int8ub,
 	StructOrderedSequence = 0x4C,
 	default               = Pass
 )
+
+
+#### Concentration specific ###################################################
+_ConcentrationUnit_ = Enum(Int8ub,
+	UNIT_UNDEF  = 0xFF,
+	UNIT_PP10   = 0x01,
+	UNIT_PP100  = 0x02,
+	UNIT_PP1000 = 0x03,
+	UNIT_PPM    = 0x06,
+	UNIT_PPB    = 0x09,
+	UNIT_PPT    = 0x0C,
+	UNIT_PPQ    = 0x0F,
+	UNIT_0_500  = 0x80,
+	default      = Error
+)
+
+_ConcentrationClassification_ = Enum(Int8ub,
+	EXCELENT     = 0x00,
+	GOOD         = 0x01,
+	AVERAGE      = 0x02,
+	BAD          = 0x03,
+	VERY_BAD     = 0x04,
+	UNHEALTHY    = 0x05,
+	UNDEF        = 0xff,
+	default      = Error
+)
+
+_ConcentrationCalibrationSource_ = Enum(Int8ub,
+	UNDEF = 0x00,
+	ABC  = 0x01,
+	DOWNLINK = 0x02,
+	MANUAL = 0x03,
+	ACTION = 0x04,
+	default      = Error
+)
+
+
+_ConcentrationCalibrationType_ = Enum(Int8ub,
+	UNDEF = 0x00,
+	ACTUAL = 0x01,
+	ACTUAL_REPORTED = 0x02,
+
+	FRESH_AIR = 0x03
+)
+
+_ConcentrationCalibrationStatus_ = Enum(Int8ub,
+	UNDEF = 0x00,
+	OK = 0x01,
+	FAILED = 0x02
+)
+
+_ClassificationLevelsStruct_ = Struct(
+	"TopOf_EXCELENT" / Int16ub,
+	"TopOf_GOOD" / Int16ub,
+	"TopOf_AVERAGE" / Int16ub,
+	"TopOf_BAD" / Int16ub,
+	"TopOf_VERY_BAD" / Int16ub
+	# Above is UNHEALTHY
+)
+
+_CalibrationStatusStruct_ = Struct(
+	"TimeStampStart" / Int32ub,
+	"TimeStampEnd" / Int32ub,
+	"Source" / _ConcentrationCalibrationSource_,
+	"Type" / _ConcentrationCalibrationType_,
+	"NbTries" / Int8ub,
+	"Status"  / _ConcentrationCalibrationStatus_,
+	"OffSet"  / Int16sb,
+	"StartValue"  / Int16ub,
+	"EndValue"  / Int16ub
+) 
 
 
 ################# XYZAcceleration specific ######################
@@ -212,13 +295,11 @@ DataBatch = Switch(
 				"Count" :  Int32ub
 			}, default = Pass
 		),
-		
 #		"MultiStateOutput" : Switch(
 #			FindAttributeID,{
 #				"PresentValue" : Unsigned 8 bits integer
 #			}
 #		),
-
 		"Configuration" : Switch(
 			FindAttributeID,{
 				"NodePowerDescriptor" :  Switch(FindFieldIndex, {
@@ -232,13 +313,11 @@ DataBatch = Switch(
 				})
 			}, default = Pass
 		),
-		
 #		"VolumeMeter" : Switch(
 #			FindAttributeID,{
 #				"Volume" : signed int l32
 #			}
 #		),
-
 		"EnergyPowerMetering" : Switch(
 			FindAttributeID,{
 				"PresentValues" :  Int32ub
@@ -251,11 +330,22 @@ DataBatch = Switch(
 		),
 		"Concentration" :	Switch(
 			FindAttributeID,{
-				"MeasuredValue" :  Int16ub,
-				"MeasuredValueMean" :  Int16ub,
+				"MeasuredValue" :     Int16ub,
+				"MeasuredValueMean" : Int16ub,
 				"MeasuredValueMin" :  Int16ub,
 				"MeasuredValueMax" :  Int16ub,
-				
+				"Classification" :    Int8ub,
+				"CalibrationStatus" :    Switch(this.FieldIndex, {
+					0 : Int32ub,
+					1 : Int32ub,
+					2 : Int8ub,
+					3 : Int8ub,
+					4 : Int8ub,
+					5 : Int8ub,
+					6 : Int16sb,
+					7 : Int16ub,
+					8 : Int16ub
+				})
 			}, default               = Pass
 		),
 		"TIC_CBE"    : TICDataBatchCBEFromFieldIndex,
@@ -304,6 +394,8 @@ FrameCtrl = Embedded(BitStruct(
 CommandID = Enum(Int8ub,
 	ReadAttribute                      = 0x00,
 	ReadAttributeResponse              = 0x01,
+	WriteAttribute                     = 0x02,
+	WriteAttributeResponse             = 0x04,
 	WriteAttributeNoResponse           = 0x05,
 	ConfigureReporting                 = 0x06,
 	ConfigureReportingResponse         = 0x07,
@@ -531,8 +623,19 @@ AttributeID = Switch(
 			MeasuredValueMean = 0x0100,
 			MeasuredValueMin  = 0x0101,
 			MeasuredValueMax  = 0x0102,
+			Classification    = 0x0001,
+			LastCalibrationStatus = 0x8000,
 			Unit              = 0x8004,
 			MinNormalLevel    = 0x8008,
+			CalibrationPeriodDays = 0x8009,
+			CalibrationActive = 0x800A,
+			ClassificationLevels = 0x8010,
+			OversamplingAverageNbPoints = 0x8011,
+			HMIDisplayPeriodSeconds = 0x8020,
+			HMIBuzzerPeriodSeconds = 0x8031,
+			HMIBuzzerPausePeriodMinutes = 0x8032,
+			HMIBuzzerClassifictionThresholdHigh = 0x8033,
+			HMIBuzzerClassifictionThresholdLow = 0x8034,
 			default =  "_UNKNOWN_"
 		),
 		"XYZAcceleration": Enum (Int16ub,
@@ -628,7 +731,13 @@ Data = Switch(
 			
 		"Bitmap8"              : BitStruct("b7" / BitsInteger(1),"b6" / BitsInteger(1),"b5" / BitsInteger(1),"b4" / BitsInteger(1),"b3" / BitsInteger(1),"b2" / BitsInteger(1),"b1" / BitsInteger(1),"b0" / BitsInteger(1)),
 		"Bitmap16"             : BitStruct("b15" / BitsInteger(1),"b14" / BitsInteger(1),"b13" / BitsInteger(1),"b12" / BitsInteger(1),"b11" / BitsInteger(1),"b10" / BitsInteger(1),"b9" / BitsInteger(1),"b8" / BitsInteger(1),"b7" / BitsInteger(1),"b6" / BitsInteger(1),"b5" / BitsInteger(1),"b4" / BitsInteger(1),"b3" / BitsInteger(1),"b2" / BitsInteger(1),"b1" / BitsInteger(1),"b0" / BitsInteger(1)),
-		"UInt8"                : Int8ub,
+		"UInt8"                : 
+			Switch(FindClusterID, {
+				"Concentration" : Switch(FindAttributeID, {
+					"Unit" : _ConcentrationUnit_,
+					"Classification" : _ConcentrationClassification_
+				}, default = Int8ub)
+			}, default = Int8ub),
 		"UInt16"               : Int16ub,
 		"UInt24"               : Int24ub,
 		"UInt32"               : Int32ub,
@@ -737,6 +846,11 @@ Data = Switch(
 									"Stats_Z" : _XYZAccStatsStruct_,
 									"Last"    : _XYZAccLastStruct_,
 									"Params"  : _XYZAccParamsStruct_
+								}, default =  Error
+							),
+							"Concentration" : Switch(FindAttributeID, {
+									"ClassificationLevels" : _ClassificationLevelsStruct_,
+									"LastCalibrationStatus"    : _CalibrationStatusStruct_
 								}, default =  Error
 							)
 						}, 		

@@ -7,6 +7,21 @@ from _TestsTools import *
 
 WTCParseInit()
 
+## Various Concentration cluster actions
+# Read Unit
+WTCParseBuildTest(STDFrame, "11 01 800C 8004 00 20 06")
+# Classification
+WTCParseBuildTest(STDFrame, "11 0A 800C 0001 20 00")
+# Last Calibraton Status
+WTCParseBuildTest(STDFrame, "11 01 800C 8000 00 41 12 0000000A 0000000B 01 01 02 00 FFF0 00FF 00EE")
+# ClassificationLevels
+WTCParseBuildTest(STDFrame, "11 01 800C 8010 00 41 0A 0226 02BC 044C 0514 06A4")
+
+# Test Write Attribute (with response) (only for scalar value at the moment)
+WTCParseBuildTest(STDFrame, "11 02 0013 0055 20 11")
+WTCParseBuildTest(STDFrame, "11 04 0013 00 0055")
+WTCParseBuildTest(STDFrame, "11 04 0013 96 0055")
+
 # XYZAcceleration
 WTCParseBuildTest(STDFrame, "11 05 800F 8000 41 17 0064 03E8 0003 1B58 0136 0136 0136 0000 03E8 4E20 90 03 07")
 WTCParseBuildTest(STDFrame, "1101800F80000041170064271000031B5800A000A00136000003E84E20901407")

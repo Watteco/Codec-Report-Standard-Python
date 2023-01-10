@@ -132,6 +132,27 @@ STDFrame = Struct(
 			)
 		)
 	),
+	#Write Attribut (with response)
+	Embedded ( 
+		If ( ((this.CommandID == "WriteAttribute")),
+			Struct(	
+				OptionalTICAttributeInstance,
+				"AttributeID" / AttributeID,
+				"AttributeType" / DataType,
+				"Data" / Data
+			)
+		)
+	),
+	#Write Attribut response
+	Embedded ( 
+		If ( ((this.CommandID == "WriteAttributeResponse")),
+			Struct(	
+				"Status" / Status,
+				OptionalTICAttributeInstance,
+				"AttributeID" / AttributeID
+			)
+		)
+	),
 	#Write Attribut no response
 	Embedded ( 
 		If ( ((this.CommandID == "WriteAttributeNoResponse")),
