@@ -537,6 +537,8 @@ AttributeID = Switch(
 			EdgeSelection   = 0x0400,
 			DebouncePeriod  = 0x0401,
 			Count           = 0x0402,
+			PollPeriod		= 0x0403,
+			ForceNotify		= 0x0404,
 			default =  "_UNKNOWN_"
 		),
 		"Illuminance": Enum (Int16ub,
