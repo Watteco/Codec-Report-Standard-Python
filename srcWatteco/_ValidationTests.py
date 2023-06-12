@@ -7,6 +7,35 @@ from _TestsTools import *
 
 WTCParseInit()
 
+# Analog input: Power duration configuration
+WTCParseBuildTest(STDFrame, "11 05 000C 8003 21 9410",PRINT_JSON_IF_OK=False)
+# Analog input: Accelero TAP (Chock/Clicks) configuration
+WTCParseBuildTest(STDFrame, "11 05 000C 8004 19 9410",PRINT_JSON_IF_OK=False)
+# Analog input: Accelero Angle disp
+#  Report Configuration Batch :
+# . ANGLEDISP (TAP/LIS2DE) ** Angle (°) **
+#   Min 4h => 0x80F0(angle measurement period), Max 24H, Delta=5 (0x40a00000) [1 (0x3f800000)],    resol=0,1(0x3dcccccd),   Tag Label 1, Tag Size 3, Type Float 12
+WTCParseBuildTest(STDFrame, "11 06 000C 1D 0055 00 80F0 85A0 40a00000 3dcccccd 0B",PRINT_JSON_IF_OK=False)
+
+# Number/U16: Accelero (Chock/Clicks) max acceleration
+#  Report Std :
+WTCParseBuildTest(STDFrame, "11 0A 800E 0000 21 03E8",PRINT_JSON_IF_OK=True)
+#  Report Configuration Std :
+# . Basic Delta  configuration (TAP/LIS2DE) ** Acc(mg) **
+#   Min 10s, Max 30 mn, Delta 100mg
+WTCParseBuildTest(STDFrame, "11 06 800E 00 0000 21 000A 801E 0064",PRINT_JSON_IF_OK=True)
+# . New configuration (TAP/LIS2DE) ** Acc(mg) **
+#   Min 10s, Max 10 mn, Threshold 1000mg, Gap 100mg, Exceed and Fall, Alarm, Confirmed if Alarm, 2 occurences
+WTCParseBuildTest(STDFrame, "11 06 800E 88 0000 21 000A 800A f0 03E8 0064 02",PRINT_JSON_IF_OK=True)
+
+
+#  Report Configuration Batch :
+# . ACCELERATION (TAP/LIS2DE) ** Acc(mg) **
+#   Min 1s => 0x0001 (Note: this min sets the min maximum acc measurement when chocks occures), 
+#   Max 24h, Delta=0,    resol=1,   Tag Label 0, Tag Size 3, Type U16 6
+WTCParseBuildTest(STDFrame, "11 06 800E 15 0000 00 0001 85A0 0000 0001 03",PRINT_JSON_IF_OK=False);
+WTCParseBuildTest(STDFrame, "11 06 800E 15 0000 00 0001 85A0 0000 0001 03;UserAttributeType=UInt16",PRINT_JSON_IF_OK=False);
+
 # Voltage-current-Metering
 WTCParseBuildTest(STDFrame, "110A800B00004106000000000112",PRINT_JSON_IF_OK=True)
 # Voltage-current-multi_Metering

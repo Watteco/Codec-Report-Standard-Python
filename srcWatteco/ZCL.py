@@ -217,167 +217,6 @@ _XYZAccParamsStruct_ = Struct(
 	))
 )
 
-###############################################################
-DataBatch = Switch(
-	FindClusterID, {
-		"SimpleMetering" : 	Switch(
-			FindAttributeID,{
-				"CurrentMetering" :  Switch(this.FieldIndex, {
-					0 : Int24sb,
-					1 : Int24sb,
-					2 : Int16ub,
-					3 : Int16ub,
-					4 : Int16ub
-				})
-			}, default = Pass
-		),
-		"PowerQuality" : 	Switch(
-			FindAttributeID,{
-				"CurrentValues" :  Switch(this.FieldIndex, {
-					0 : Int16ub,
-					1 : Int16ub,
-					2 : Int16ub,
-					3 : Int16ub,
-					4 : Int16ub,
-					5 : Int16ub,
-					6 : Int16ub,
-					7 : Int16ub,
-					8 : Int16ub,
-					9 : Int16ub,
-					10 : Int16ub,
-					11 : Int16ub
-				})
-			}, default = Pass
-		),
-		"Occupancy" :	Switch(
-			FindAttributeID,{
-				"Occupancy" : Flag 
-			}, default = Pass
-		),
-		"Temperature" : Switch(
-			FindAttributeID,{
-				"MeasuredValue" :  Int16sb
-			}, default = Pass
-		),
-		"Pressure" :Switch(
-			FindAttributeID,{
-				"MeasuredValue" :  Int16sb
-			}, default               = Pass
-		),
-		"Illuminance" :Switch(
-			FindAttributeID,{
-				"MeasuredValue" :  Int16ub
-			}, default               = Pass
-		),
-		"DifferentialPressure" : Switch(
-			FindAttributeID,{
-				"MeasuredValue" :  Int16sb,
-				"MinMeasuredValue" :  Int16sb,
-				"MaxMeasuredValue" :  Int16sb,
-				"MeanMeasuredValueSinceLastReportAttribute" :  Int16sb,
-				"MinimalMeasuredValueSinceLastReportAttribute" :  Int16sb,
-				"MaximalMeasuredValueSinceLastReportAttribute" :  Int16sb,
-			}, default               = Pass
-		),
-		"RelativeHumidity" : Switch(
-			FindAttributeID,{
-				"MeasuredValue" :  Int16ub
-			}, default               = Pass
-		),
-		"AnalogInput" : Switch(
-			FindAttributeID,{
-				"PresentValue" :  Float32b
-			}, default               = Pass
-		),
-		"BinaryInput" : Switch(
-			FindAttributeID,{
-				"PresentValue" : Flag,
-				"Count" :  Int32ub
-			}, default = Pass
-		),
-#		"MultiStateOutput" : Switch(
-#			FindAttributeID,{
-#				"PresentValue" : Unsigned 8 bits integer
-#			}
-#		),
-		"Configuration" : Switch(
-			FindAttributeID,{
-				"NodePowerDescriptor" :  Switch(FindFieldIndex, {
-					0 : Int16ub,
-					1 : Int16ub,
-					2 : Int16ub,
-					3 : Int16ub,
-					4 : Int16ub,
-					5 : Int16ub,
-					6 : Int16ub,
-				})
-			}, default = Pass
-		),
-#		"VolumeMeter" : Switch(
-#			FindAttributeID,{
-#				"Volume" : signed int l32
-#			}
-#		),
-		"EnergyPowerMetering" : Switch(
-			FindAttributeID,{
-				"PresentValues" :  Int32ub
-			}, default               = Pass
-		),
-		"EnergyPowerMultiMetering" : Switch(
-			FindAttributeID,{
-				"EnergyPresentValues" :  Int32sb,
-				"PowerPresentValues" :  Int32sb
-			}, default               = Pass
-		),
-		"VoltageCurrentMetering" : Switch(
-			FindAttributeID,{
-				"PresentValues" :  Int16ub
-			}, default               = Pass
-		),
-		"VoltageCurrentMultiMetering" : Switch(
-			FindAttributeID,{
-				"PresentValues" :  Int16sb
-			}, default               = Pass
-		),
-		"Concentration" :	Switch(
-			FindAttributeID,{
-				"MeasuredValue" :     Int16ub,
-				"MeasuredValueMean" : Int16ub,
-				"MeasuredValueMin" :  Int16ub,
-				"MeasuredValueMax" :  Int16ub,
-				"Classification" :    Int8ub,
-				"CalibrationStatus" :    Switch(this.FieldIndex, {
-					0 : Int32ub,
-					1 : Int32ub,
-					2 : Int8ub,
-					3 : Int8ub,
-					4 : Int8ub,
-					5 : Int8ub,
-					6 : Int16sb,
-					7 : Int16ub,
-					8 : Int16ub
-				})
-			}, default               = Pass
-		),
-		"TIC_CBE"    : TICDataBatchCBEFromFieldIndex,
-		"TIC_STD"    : TICDataBatchSTDFromFieldIndex,
-		"TIC_PMEPMI" : TICDataBatchPMEPMIFromFieldIndex,
-		"TIC_ICE" : Switch( FindAttributeID, {
-			"General" : TICDataBatchICEGeneralFromFieldIndex,
-			"ICEp"    : TICDataBatchICEpxFromFieldIndex,
-			"ICEpm1"  : TICDataBatchICEpxFromFieldIndex
-		}),
-		"XYZAcceleration" : 	Switch(
-			FindAttributeID,{
-				"Stats_X" : _XYZAccStatsType_,
-				"Stats_Y" : _XYZAccStatsType_,
-				"Stats_Z" : _XYZAccStatsType_,
-				"Last"    : _XYZAccLastType_
-			}, default = Pass
-		)
-	},default = Pass
-)
-
 
 #### Endpoint ###################################################
 class EndPointAdapter(Adapter):
@@ -452,6 +291,7 @@ ClusterID = Enum(Int16ub,
 	VoltageCurrentMetering = 0x800B,
 	Concentration     = 0x800C,
 	VoltageCurrentMultiMetering = 0x800D,
+	Number = 0x800E,
 	XYZAcceleration   = 0x800F,
 	default           = "_UNKNOWN_"
 )
@@ -527,7 +367,8 @@ AttributeID = Switch(
 		"AnalogInput": Enum (Int16ub,
 			PresentValue    = 0x0055,
 			ApplicationType = 0x0100,
-			PowerDuration = 0x8003,
+			PowerDuration   = 0x8003,
+			AccelerometerConfig1 = 0x8004,
 			default =  "_UNKNOWN_"
 		),
 		"BinaryInput": Enum (Int16ub,
@@ -537,6 +378,8 @@ AttributeID = Switch(
 			EdgeSelection   = 0x0400,
 			DebouncePeriod  = 0x0401,
 			Count           = 0x0402,
+			PollPeriod		= 0x0403,
+			ForceNotify		= 0x0404,
 			default =  "_UNKNOWN_"
 		),
 		"Illuminance": Enum (Int16ub,
@@ -662,6 +505,10 @@ AttributeID = Switch(
 			HMIBuzzerClassifictionThresholdLow = 0x8034,
 			default =  "_UNKNOWN_"
 		),
+		"Number": Enum (Int16ub,
+			PresentValue = 0x0000,
+			default =  "_UNKNOWN_"
+		),
 		"XYZAcceleration": Enum (Int16ub,
 			Last           = 0x0000,
 			Stats_X        = 0x0001,
@@ -753,10 +600,23 @@ Data = Switch(
 			    )
 			},	default =   "Bytes" / BytesTostrHex),
 			
-		"Bitmap8"              : BitStruct("b7" / BitsInteger(1),"b6" / BitsInteger(1),"b5" / BitsInteger(1),"b4" / BitsInteger(1),"b3" / BitsInteger(1),"b2" / BitsInteger(1),"b1" / BitsInteger(1),"b0" / BitsInteger(1)),
-		"Bitmap16"             : BitStruct("b15" / BitsInteger(1),"b14" / BitsInteger(1),"b13" / BitsInteger(1),"b12" / BitsInteger(1),"b11" / BitsInteger(1),"b10" / BitsInteger(1),"b9" / BitsInteger(1),"b8" / BitsInteger(1),"b7" / BitsInteger(1),"b6" / BitsInteger(1),"b5" / BitsInteger(1),"b4" / BitsInteger(1),"b3" / BitsInteger(1),"b2" / BitsInteger(1),"b1" / BitsInteger(1),"b0" / BitsInteger(1)),
+		"Bitmap8"              : BitStruct("b7" / BitsInteger(1),"b6" / BitsInteger(1),"b5" / BitsInteger(1),"b4" / BitsInteger(1),
+				                           "b3" / BitsInteger(1),"b2" / BitsInteger(1),"b1" / BitsInteger(1),"b0" / BitsInteger(1)),
+		"Bitmap16"             :  
+			Switch( FindAttributeID, {
+				"AccelerometerConfig1" : BitStruct(
+						"TCfg_Type"  / BitsInteger(2),
+						"TCfg_Freq"  / BitsInteger(4),
+						"TCfg_FullScale" / BitsInteger(2),
+						"TCfg_Reserved"  / Const(Bit,0),
+						"TCfg_ThrshLSBNb" / BitsInteger(7)
+					),
+				}, default = BitStruct("b15" / BitsInteger(1),"b14" / BitsInteger(1),"b13" / BitsInteger(1),"b12" / BitsInteger(1),
+				                       "b11" / BitsInteger(1),"b10" / BitsInteger(1),"b9" / BitsInteger(1),"b8" / BitsInteger(1),
+				                       "b7" / BitsInteger(1),"b6" / BitsInteger(1),"b5" / BitsInteger(1),"b4" / BitsInteger(1),
+				                       "b3" / BitsInteger(1),"b2" / BitsInteger(1),"b1" / BitsInteger(1),"b0" / BitsInteger(1))),
 		"UInt8"                : 
-			Switch(FindClusterID, {
+			Switch (FindClusterID, {
 				"Concentration" : Switch(FindAttributeID, {
 					"Unit" : _ConcentrationUnit_,
 					"Classification" : _ConcentrationClassification_
@@ -769,7 +629,7 @@ Data = Switch(
 		"Int16"                : Int16sb,
 		"Int32"                : Int32sb,
 		"UInt8Enum"            : Int8ub,
-		"SinglePrecision"               : Float32b,
+		"SinglePrecision"      : Float32b,
 		"CharString"           : 
 			Struct(
 			   "Count"  / Int8ub, 
@@ -932,6 +792,170 @@ Data = Switch(
 	},default = "Bytes" / BytesTostrHex
 )
 
+
+###############################################################
+DataBatch = Switch(
+	FindClusterID, {
+		"SimpleMetering" : 	Switch(
+			FindAttributeID,{
+				"CurrentMetering" :  Switch(this.FieldIndex, {
+					0 : Int24sb,
+					1 : Int24sb,
+					2 : Int16ub,
+					3 : Int16ub,
+					4 : Int16ub
+				})
+			}, default = Pass
+		),
+		"PowerQuality" : 	Switch(
+			FindAttributeID,{
+				"CurrentValues" :  Switch(this.FieldIndex, {
+					0 : Int16ub,
+					1 : Int16ub,
+					2 : Int16ub,
+					3 : Int16ub,
+					4 : Int16ub,
+					5 : Int16ub,
+					6 : Int16ub,
+					7 : Int16ub,
+					8 : Int16ub,
+					9 : Int16ub,
+					10 : Int16ub,
+					11 : Int16ub
+				})
+			}, default = Pass
+		),
+		"Occupancy" :	Switch(
+			FindAttributeID,{
+				"Occupancy" : Flag 
+			}, default = Pass
+		),
+		"Temperature" : Switch(
+			FindAttributeID,{
+				"MeasuredValue" :  Int16sb
+			}, default = Pass
+		),
+		"Pressure" :Switch(
+			FindAttributeID,{
+				"MeasuredValue" :  Int16sb
+			}, default               = Pass
+		),
+		"Illuminance" :Switch(
+			FindAttributeID,{
+				"MeasuredValue" :  Int16ub
+			}, default               = Pass
+		),
+		"DifferentialPressure" : Switch(
+			FindAttributeID,{
+				"MeasuredValue" :  Int16sb,
+				"MinMeasuredValue" :  Int16sb,
+				"MaxMeasuredValue" :  Int16sb,
+				"MeanMeasuredValueSinceLastReportAttribute" :  Int16sb,
+				"MinimalMeasuredValueSinceLastReportAttribute" :  Int16sb,
+				"MaximalMeasuredValueSinceLastReportAttribute" :  Int16sb,
+			}, default               = Pass
+		),
+		"RelativeHumidity" : Switch(
+			FindAttributeID,{
+				"MeasuredValue" :  Int16ub
+			}, default               = Pass
+		),
+		"AnalogInput" : Switch(
+			FindAttributeID,{
+				"PresentValue" :  Float32b
+			}, default               = Pass
+		),
+		"BinaryInput" : Switch(
+			FindAttributeID,{
+				"PresentValue" : Flag,
+				"Count" :  Int32ub
+			}, default = Pass
+		),
+#		"MultiStateOutput" : Switch(
+#			FindAttributeID,{
+#				"PresentValue" : Unsigned 8 bits integer
+#			}
+#		),
+		"Configuration" : Switch(
+			FindAttributeID,{
+				"NodePowerDescriptor" :  Switch(FindFieldIndex, {
+					0 : Int16ub,
+					1 : Int16ub,
+					2 : Int16ub,
+					3 : Int16ub,
+					4 : Int16ub,
+					5 : Int16ub,
+					6 : Int16ub,
+				})
+			}, default = Pass
+		),
+#		"VolumeMeter" : Switch(
+#			FindAttributeID,{
+#				"Volume" : signed int l32
+#			}
+#		),
+		"EnergyPowerMetering" : Switch(
+			FindAttributeID,{
+				"PresentValues" :  Int32ub
+			}, default               = Pass
+		),
+		"EnergyPowerMultiMetering" : Switch(
+			FindAttributeID,{
+				"EnergyPresentValues" :  Int32sb,
+				"PowerPresentValues" :  Int32sb
+			}, default               = Pass
+		),
+		"VoltageCurrentMetering" : Switch(
+			FindAttributeID,{
+				"PresentValues" :  Int16ub
+			}, default               = Pass
+		),
+		"VoltageCurrentMultiMetering" : Switch(
+			FindAttributeID,{
+				"PresentValues" :  Int16sb
+			}, default               = Pass
+		),
+		"Concentration" :	Switch(
+			FindAttributeID,{
+				"MeasuredValue" :     Int16ub,
+				"MeasuredValueMean" : Int16ub,
+				"MeasuredValueMin" :  Int16ub,
+				"MeasuredValueMax" :  Int16ub,
+				"Classification" :    Int8ub,
+				"CalibrationStatus" :    Switch(this.FieldIndex, {
+					0 : Int32ub,
+					1 : Int32ub,
+					2 : Int8ub,
+					3 : Int8ub,
+					4 : Int8ub,
+					5 : Int8ub,
+					6 : Int16sb,
+					7 : Int16ub,
+					8 : Int16ub
+				})
+			}, default               = Pass
+		),
+		"TIC_CBE"    : TICDataBatchCBEFromFieldIndex,
+		"TIC_STD"    : TICDataBatchSTDFromFieldIndex,
+		"TIC_PMEPMI" : TICDataBatchPMEPMIFromFieldIndex,
+		"TIC_ICE" : Switch( FindAttributeID, {
+			"General" : TICDataBatchICEGeneralFromFieldIndex,
+			"ICEp"    : TICDataBatchICEpxFromFieldIndex,
+			"ICEpm1"  : TICDataBatchICEpxFromFieldIndex
+		}),
+		"XYZAcceleration" : 	Switch(
+			FindAttributeID,{
+				"Stats_X" : _XYZAccStatsType_,
+				"Stats_Y" : _XYZAccStatsType_,
+				"Stats_Z" : _XYZAccStatsType_,
+				"Last"    : _XYZAccLastType_
+			}, default = Pass
+		),
+		"Number" : 	Data
+	},default = Pass
+)
+
+
 #### TagValue ##############################
 
 TagValue = BitStruct(
@@ -969,7 +993,8 @@ ifBatch = Struct(
 	"Delta" / DataBatch,
 	"Resolution" / DataBatch,
 	"TagValue" / TagValue
-)
+) 
+
 
 ReportParameters = BitsSwapped(BitStruct(
 		"Batch" / Enum(Bit, Yes = 1 , No = 0),

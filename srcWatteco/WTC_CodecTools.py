@@ -224,8 +224,23 @@ def FindCommandID(context):
 def FindAttributeID(context): 
 	return(GetValueFromKeyLookUP(context, "AttributeID"))
 
+# UserAttributeType can be given at the end of parse or build frame with "11....;UserAttributeType=??? [UInt8,Uint16,...]""
+def FindUserAttributeType(context): 
+	return(GetValueFromKeyLookUP(context, "UserAttributeType"))
+
 def FindAttributeType(context): 
-	return(GetValueFromKeyLookUP(context, "AttributeType"))
+	attrType = GetValueFromKeyLookUP(context, "AttributeType")
+	if (attrType == "") :
+		attrType = FindUserAttributeType(context)
+	# Below Uggly paliative to acept Number as UInt16 by default for Chocs of Inclin'o
+	# Won't work for any other untyped frame (batch configuration) of other usage of 
+	# Number cluster. 
+	# Using codec with arg "UserAttributeType=xxxxx" should be mandatory in that cases
+	if (attrType == ""):
+		if (FindClusterID(context) == "Number"):
+			if (FindAttributeID(context) == "Presentvalue"):
+				attrType = "UInt16"
+	return(attrType )
 
 def FindFieldIndex(context): 
 	return(GetValueFromKeyLookUP(context, "FieldIndex"))
