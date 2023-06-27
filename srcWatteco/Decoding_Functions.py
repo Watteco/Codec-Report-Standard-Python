@@ -14,7 +14,7 @@ import datetime
 
 import sys
 
-version = 'NKE_Frame_Codec_v_1.0.svn5087'
+version = 'WATTECO_Frame_Codec_v_1.0'
 
 
 #-- coding/decoding in Standrd Mode

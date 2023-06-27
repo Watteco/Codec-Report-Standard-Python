@@ -40,7 +40,7 @@ Exemples:
 
 > echo 110a005000064107010536d80e4e01a059022ee0000001 | py Main.py -of json
 
-{"version": "NKE_Frame_Codec_v_1.0", "TimeStamp": "2018-05-14 09:35:36.186645"}
+{"version": "WATTECO_Frame_Codec_v_1.0", "TimeStamp": "2018-05-14 09:35:36.186645"}
 {
  "FrameCtrl": {
   "EndPoint": 0,
@@ -64,7 +64,7 @@ Exemples:
 > echo 110a04020000290A25 | py Main.py -of xmlp
 
 <?xml version="1.0" ?>
-<NKE_Frame_Codec_v_1.0>
+<WATTECO_Frame_Codec_v_1.0>
         <FrameCtrl type="dict">
                 <EndPoint type="int">0</EndPoint>
                 <Report type="str">Standard</Report>
@@ -74,7 +74,7 @@ Exemples:
         <AttributeID type="str">MeasuredValue</AttributeID>
         <AttributeType type="str">Int16</AttributeType>
         <Data type="int">2597</Data>
-</NKE_Frame_Codec_v_1.0>
+</WATTECO_Frame_Codec_v_1.0>
 
 
 
