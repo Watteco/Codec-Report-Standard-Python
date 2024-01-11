@@ -57,7 +57,7 @@ def Input_trame(version_d):
 		else :
 			sys.stderr.write ("\n\n\nERREUR DE SAISIE\n\n\n"),
 
-####Fonctions liées au python ##############################
+####Fonctions liï¿½es au python ##############################
 #-- codage/decodage en Python
 def Decodage_Python_deroulant(trame):
 	sys.stderr.write ('\n\n\n|--------------------------------------------------|')
@@ -67,7 +67,7 @@ def Decodage_Python_deroulant(trame):
 	print ( STDFrame.parse(unhexlify(trame) ) )
 
 	
-#### Fonctions liées au JSON##############################
+#### Fonctions liï¿½es au JSON##############################
 #-- codage/decodage en JSON
 def Decodage_JSON_deroulant(trame):
 	sys.stderr.write ('\n\n\n|--------------------------------------------------|')
@@ -77,14 +77,14 @@ def Decodage_JSON_deroulant(trame):
 	print(json.dumps(STDFrame.parse(unhexlify(trame) ),indent=5))
 
 
-#### Fonctions liées au XML ##############################
+#### Fonctions liï¿½es au XML ##############################
 #-- codage/decodage en XMl
 def Decodage_XML_Pretty_deroulant(trame):
 	sys.stderr.write ('\n\n\n|--------------------------------------------------|')
 	sys.stderr.write ('\n|---------------Notation XML-----------------------|')
 	sys.stderr.write ('\n|--------------------------------------------------|\n')
 	sys.stderr.write ('\n\nDecodage en Notation Pretty XML:\n\n')
-	xml_with_ids = dicttoxml.dicttoxml(STDFrame.parse(unhexlify(trame) ),custom_root='NKE_Frame_Codec_v_1.0')
+	xml_with_ids = dicttoxml.dicttoxml(STDFrame.parse(unhexlify(trame) ),custom_root='WATTECO_Frame_Codec_v_1.0')
 	print(parseString(xml_with_ids).toprettyxml())
 
 def Decodage_XML_Line_deroulant(trame):	
@@ -92,6 +92,6 @@ def Decodage_XML_Line_deroulant(trame):
 	sys.stderr.write ('\n|---------------Notation XML-----------------------|')
 	sys.stderr.write ('\n|--------------------------------------------------|\n')
 	sys.stderr.write ('\nDecodage en Notation Compacte XML:\n\n')
-	print(dicttoxml.dicttoxml(STDFrame.parse(unhexlify(trame) ),custom_root='NKE_Frame_Codec_v_1.0'))
+	print(dicttoxml.dicttoxml(STDFrame.parse(unhexlify(trame) ),custom_root='WATTECO_Frame_Codec_v_1.0'))
 
 	
