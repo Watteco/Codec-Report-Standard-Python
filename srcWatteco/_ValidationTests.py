@@ -101,14 +101,14 @@ WTCParseBuildTest(STDFrame, "b107000f00010402")
 # TIC CBE report
 WTCParseBuildTest(STDFrame, "110A005405004119 260706082122 0000000D 0000000E 0000000F 41 414243444500", ERR_SYM_EXP=True)
 WTCParseBuildTest(STDFrame, "110A005405004119 260607082122 0000000D 0000000E 0000000F 41 414243444500")
-# TIC CBE Config report
+# TIC CBE Config report. ERR_SYM_EXP because beter desc format choosen when rebuild ! !
 WTCParseBuildTest(STDFrame, 
 "11 06 0054 00 0200 41 8001 800A"             "16" + # 22 (Sum)
 "260607082122"                                     + #  6
 "24060708 0000000D 0000000E 0000000F"              + # 16
-"") 
-#TIC STD
-WTCParseBuildTest(STDFrame, "11 0A 0056 0100 41 1F 27000102030405 426f6e6a6f7572202100 80 45010203040506 0F 08 80000000")
+"", ERR_SYM_EXP=True) 
+#TIC STD. ERR_SYM_EXP because beter desc format choosen when rebuild ! !
+WTCParseBuildTest(STDFrame, "11 0A 0056 0100 41 1F 27000102030405 426f6e6a6f7572202100 80 45010203040506 0F 08 80000000", ERR_SYM_EXP=True)
 # TIC STD, PRODUCTEUR
 WTCParseBuildTest(STDFrame,"110a00560000411f06018010002b303231393736303635363832000219000002a10167dfac0f0f")
 # TIC STD, Read reporting configuration avec Descripteur citères vide
@@ -125,7 +125,7 @@ WTCParseBuildTest(STDFrame,
 "1000 0000000A 2000 3000 0000000B 4000 5000 0000000C "          + # 22 
 "00000E 08 00000F 09"                                           + #  8
 "")
-#TIC ICE, General: 
+#TIC ICE, General: ;meterVersion=-
 #	CONTRAT(CString),DATECOUR(DMYhms),EA(U24),ERP(U24),
 #	PTCOUR(CString),DATEPA1(DMYhms),PA1(U16),
 #	PA1MN(U16),PA10MN(U16),PREA10MN(U16),TGPHI(U32),U10MN(U16)
@@ -135,16 +135,17 @@ WTCParseBuildTest(STDFrame,
 "4d6f6e436f6e7472617400 010100010130 00000A 00000B " + # 23
 "48434800 44455000 010100010100 0010"                + # 16
 "0010 0011 0012 0013 00000013 0014"                  + # 14
-"")
+";meterVersion=-")
 #TIC ICE ICEp1: 
 #	DEBUTp1(DMYhms),Finp1(DMYhms),CAFp1(U16),
 #	EAp1P(U24),ERPp1P(U24),ERNp1P(U24)
+#  ERR_SYM_EXP because beter desc format choosen when rebuild ! !
 WTCParseBuildTest(STDFrame,
 "11 0A 0053 0102 41 "                         + "1E" + # 29 (sum)
 "A7 00 01 02 04 13 22"                               + #  7
 "010100010120 010100010121 1001"                     + # 14
 "800010 800011 800012"                               + #  8
-"")
+"",ERR_SYM_EXP=True)
 WTCParseBuildTest(STDFrame,
 "11 0A 0053 0102 41 "                         + "21" + # 33 (sum)
 "A7 00 01 02 04 13 22"                               + #  7

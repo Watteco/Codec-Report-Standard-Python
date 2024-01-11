@@ -2,6 +2,8 @@
 from construct import *
 from WTC_CodecTools import *
 import sys
+
+from binascii import hexlify,unhexlify
 		
 ##### TIC Attribute ID #####################################
 # Specific for TIC attribute: <Intance u8><Attribute ID u8>
@@ -188,6 +190,74 @@ class TICUnbatchableFieldError(Construct):
 #
 #############################################################################
 
+def TICIsAttrPresent(context):
+	if (hasattr(context._,"TICReportSelector")):
+		if ((context._FieldIndex_) < len(context._.TICReportSelector.BitField)):
+			if (context._.TICReportSelector.BitField[context._FieldIndex_] == "1"):
+				return True
+	if (hasattr(context._,"TICDataSelector")):
+		if ((context._FieldIndex_) < len(context._.TICDataSelector.BitField)):
+			if (context._.TICDataSelector.BitField[context._FieldIndex_] == "1"):
+				return True
+	return False
+
+
+def TICAttr(context, subcon):
+	_rptsel = _data = "No"
+	if (hasattr(context._,"TICReportSelector")):
+		if ((context._FieldIndex_) < len(context._.TICReportSelector.BitField)):
+			if (context._.TICReportSelector.BitField[context._FieldIndex_] == "1"):
+				_rptsel = "Yes"
+	if (hasattr(context._,"TICDataSelector")):
+		if ((context._FieldIndex_) < len(context._.TICDataSelector.BitField)):
+			if (context._.TICDataSelector.BitField[context._FieldIndex_] == "1"):
+				_data = "Yes"
+
+	# Analyse les cas ou les attributs "IsReported", "IsCriteria" et "Value" doivent être présents dans l'objet du champ concerné'
+	if (_data == "Yes"):
+		if (hasattr(context._,"TICReportSelector")):
+			return Struct( "IsReported"/Computed(_rptsel), "IsCriteria"/Computed(_data),"Value"/subcon)
+		else:
+			return Struct( "Value"/subcon)
+	else:
+		if (hasattr(context._,"TICReportSelector")):
+			if (_rptsel == "Yes"):
+				return Struct( "IsReported"/Computed(_rptsel), "IsCriteria"/Computed(_data))
+
+def TICBestDesc(HeaderByte, DescVarIndexes):
+
+	nbFields = len(DescVarIndexes)
+	# print("A: nbFields = %s" % nbFields)
+	
+	HeaderByte &= ~(0x3F) # Clear (b5 : 0 VarBitField ) and (b0-b4: size)
+
+	if (nbFields > 0):
+		lastIndex = DescVarIndexes[nbFields-1]
+		nbBits = lastIndex + 1
+		nbBytes = int(nbBits / 8) + (0 if (nbBits % 8 == 0) else 1)
+		if ((nbBytes < nbFields) ) :
+			DescVarBitsField = bytearray([0] * nbBytes) 
+			for i in range(0,nbFields):
+				fieldIndex = DescVarIndexes[i]
+				byteIndex = int(nbBytes - 1 - int(fieldIndex / 8))
+				bitPos = fieldIndex % 8
+				DescVarBitsField[byteIndex] |= (1 << bitPos)
+			HeaderByte |= ((nbBytes + 1) & 0x1F) # Set Size
+			DescVarBitsField = HeaderByte.to_bytes(1) + DescVarBitsField
+			#print("B: DescVarBitsField = %s" % hexlify(DescVarBitsField))
+			return DescVarBitsField
+		else:
+			HeaderByte |= (0x01 << 5) # b5 : 1 VarIndexes
+			HeaderByte |= ((nbFields + 1) & 0x1F) # Set Size
+			DescVarIndexes = HeaderByte.to_bytes(1) + DescVarIndexes
+			#print("B: DescVarIndexes = %s" % hexlify(DescVarIndexes))
+			return DescVarIndexes
+	else:
+		HeaderByte |= (0x01 << 5) # b5 : 1 VarIndexes
+		HeaderByte |= (0x01) # Set Size
+		DescVarIndexes = HeaderByte.to_bytes(1) + DescVarIndexes
+		return DescVarIndexes
+
 class TIC_STDField(Construct):
 
 	__slots__ = ["subcons","TICFieldDescArray","BitField"]
@@ -195,29 +265,101 @@ class TIC_STDField(Construct):
 		super(TIC_STDField, self).__init__()
 		self.TICFieldDescArray = TICFieldDescArray
 		self.BitField = BitField
-	
+
 	def _parse(self, stream, context, path):
-		if hasattr(context,"_FieldIndex_"):	context._FieldIndex_ += 1
-		else: context._FieldIndex_ = 0
+		if hasattr(context,"_FieldIndex_"):	
+			context._FieldIndex_ += 1
+		else: 
+			context._FieldIndex_ = 0
+			# Get eventual parameter for filed parsing
+			context.meterVersion = GetValueFromKeyLookUP(context, 'meterVersion')
+
 		#print("A: Context._ = %s" % context._)
-		bf = self.BitField(context)
-		if ( context._FieldIndex_ >= len(bf) ): return Pass._parse(stream, context, path)
-		if (bf[context._FieldIndex_] == "0"): return  Pass._parse(stream, context, path)
-		# print("A: _FieldIndex_ = %d" % context._FieldIndex_)
-		key = self.TICFieldDescArray[context._FieldIndex_][2]
-		obj = self.TICFieldDescArray[context._FieldIndex_][3]._parse(stream, context, path)
-		return (key,obj) 
-				
-	def _build(self, obj, stream, context, path):
-		if hasattr(context,"_FieldIndex_"):	context._FieldIndex_ += 1
-		else: context._FieldIndex_ = 0
-		bf = self.BitField(context)
-		if ( context._FieldIndex_ >= len(bf) ): return Pass._build(stream,None, context, path)
-		if (bf[context._FieldIndex_] == "0"): return  Pass._build(stream,None, context, path)
-		#print("B: _FieldIndex_ = %d" % context._FieldIndex_)
-		key = self.TICFieldDescArray[context._FieldIndex_][2]
-		self.TICFieldDescArray[context._FieldIndex_][3]._build(obj[key], stream, context, path)
+		#bf = self.BitField(context)
+
+		if (not(TICIsAttrPresent(context))): return Pass._parse(stream, context, path)
 		
+		key = self.TICFieldDescArray[context._FieldIndex_][2]
+
+		if (context.meterVersion != ''):
+			if (len(self.TICFieldDescArray[context._FieldIndex_]) > 4):
+				if (self.TICFieldDescArray[context._FieldIndex_][4] != context.meterVersion):
+					raise ExplicitError("%s : field '%s (index %d)' not compatible with meterVersion %s  !" % (FindClusterID(context), key, context._FieldIndex_,context.meterVersion ))
+				
+		obj = TICAttr(context,self.TICFieldDescArray[context._FieldIndex_][3])._parse(stream, context, path)
+		return (key,obj) 
+
+	def _build(self, obj, stream, context, path):
+		if hasattr(context,"_FieldIndex_"):	
+			context._FieldIndex_ += 1
+		else: 
+			# Init on first Index parsing of meter field list table
+			context._FieldIndex_ = 0
+			# Get eventual parameter for filed parsing
+			context.meterVersion = GetValueFromKeyLookUP(context, 'meterVersion')
+			# Set commandID once
+			context._theCommandID = FindCommandID(context)
+			# Before truncating existing descriptors, get descriptors header templates from already build stream
+			b = stream.getvalue()
+			#print ("stream.getvalue()    : %s", hexlify(b))
+			if ((context._theCommandID == "ConfigureReporting" ) or (context._theCommandID == "ReadReportingConfigurationResponse")):
+				context.RptSelHeader=b[0:((b[0]&0x1F))]
+				context.DataSelHeader=b[((b[0]&0x1F)):]
+				#print ("context.RptSelHeader : %s" % hexlify(context.RptSelHeader))
+			else:
+				context.RptSelHeader=''
+				context.DataSelHeader=b[0:((b[0]&0x1F))]
+			#print ("context.DataSelHeader: %s" % hexlify(context.DataSelHeader))
+			# Truncate current TIC data header as it may be changed according to beter decsriptor selection
+			stream.truncate(0)
+			stream.seek(0)
+			# Init 
+			context.RptSelDescVarIndexes = bytearray([0] * 0) 
+			context.DataDescVarIndexes = bytearray([0] * 0) 
+
+		# Find fieldIndex in TIC data
+		key = self.TICFieldDescArray[context._FieldIndex_][2]
+		
+		doNotProcess = False
+		if (context.meterVersion != ''):
+			if (len(self.TICFieldDescArray[context._FieldIndex_]) > 4):
+				if (self.TICFieldDescArray[context._FieldIndex_][4] != context.meterVersion):
+					doNotProcess = True
+
+		if ((not doNotProcess) and (key in obj)):
+			# Manages some JSON explicit errors in TIC fields
+			if ((context._theCommandID == "ConfigureReporting" ) or (context._theCommandID == "ReadReportingConfigurationResponse")):
+				if (not(("IsReported" in obj[key]) and ("IsCriteria" in obj[key]))):
+					raise ExplicitError("%s : field '%s' must define 'IsReported' and 'IsCriteria' attributes  !" % (FindClusterID(context), key))
+				if ((obj[key]["IsCriteria"] == "Yes") and not("Value" in obj[key])):
+					raise ExplicitError("%s : field '%s' must define 'Value' when 'IsCriteria' = 'Yes'  !" % (FindClusterID(context), key))
+			else:
+				if (not("Value" in obj[key])):
+					raise ExplicitError("%s : field '%s' must define 'Value'  !" % (FindClusterID(context), key))
+
+			if ("Value" in obj[key]):
+				# If data field required "Value" is present it has to be built and set in dataIndexes
+				context.DataDescVarIndexes += context._FieldIndex_.to_bytes(1)
+				self.TICFieldDescArray[context._FieldIndex_][3]._build(obj[key]["Value"], stream, context, path)
+			
+			if ("IsReported" in obj[key]):
+				if (obj[key]["IsReported"] == "Yes") :
+					context.RptSelDescVarIndexes += context._FieldIndex_.to_bytes(1)
+
+		# If end of meter field list
+		# Build the VarBitfield descriptors they'll have to be used if shorter than VarIndexes
+		if (context._FieldIndex_ + 1 >= len(self.TICFieldDescArray)) : 
+			# print("A: buffer   = %s" % hexlify(stream.getvalue()))
+
+			# Now rebuild current stream context to prefixe the buffer with the descriptor
+			b = stream.getvalue()
+			stream.seek(0)
+			stream.truncate(0)
+			if ((context._theCommandID == "ConfigureReporting" ) or (context._theCommandID == "ReadReportingConfigurationResponse")):
+				stream.write(TICBestDesc(context.RptSelHeader[0], context.RptSelDescVarIndexes))
+			stream.write(TICBestDesc(context.DataSelHeader[0],context.DataDescVarIndexes))
+			stream.write(b)
+
 	def _sizeof(self, context, path):
 		raise SizeofError("size calculaton maybe impossible")
 

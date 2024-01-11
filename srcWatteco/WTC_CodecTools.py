@@ -232,13 +232,13 @@ def FindAttributeType(context):
 	attrType = GetValueFromKeyLookUP(context, "AttributeType")
 	if (attrType == "") :
 		attrType = FindUserAttributeType(context)
-	# Below Uggly paliative to acept Number as UInt16 by default for Chocs of Inclin'o
+	# Below Uggly paliative to accept Number as UInt16 by default for Chocs of Inclin'o
 	# Won't work for any other untyped frame (batch configuration) of other usage of 
 	# Number cluster. 
 	# Using codec with arg "UserAttributeType=xxxxx" should be mandatory in that cases
 	if (attrType == ""):
 		if (FindClusterID(context) == "Number"):
-			if (FindAttributeID(context) == "Presentvalue"):
+			if (FindAttributeID(context) == "PresentValue"):
 				attrType = "UInt16"
 	return(attrType )
 

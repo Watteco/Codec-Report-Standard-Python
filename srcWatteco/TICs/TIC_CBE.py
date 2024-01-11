@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from ._TIC_Tools import *
 
+
 ###
 #
 # New method avoiding code duplication but more complex behind 
@@ -54,9 +55,9 @@ CBEFields = [
 	(35,	False,	"PPOT",		BytesToUTF8Class(CString())),
 ]	
 		
-TICDataCBEFromBitfields_New = TIC_STDFieldRepeater(36, TIC_STDField(CBEFields,FindFieldBitField))
+TICDataCBEFromBitfields = TIC_STDFieldRepeater(len(CBEFields), TIC_STDField(CBEFields,FindFieldBitField))
 
-TICDataBatchCBEFromFieldIndex_New = TIC_BatchType(FindFieldIndex,CBEFields)
+TICDataBatchCBEFromFieldIndex = TIC_BatchType(FindFieldIndex,CBEFields)
 
 ###
 #
@@ -64,7 +65,7 @@ TICDataBatchCBEFromFieldIndex_New = TIC_BatchType(FindFieldIndex,CBEFields)
 #
 ###
 
-TICDataCBEFromBitfields = Struct(
+TICDataCBEFromBitfields_old = Struct(
 	TICDataSelectorIfBit( 0, Struct("ADIR1"/Int16ub) ),
 	TICDataSelectorIfBit( 1, Struct("ADIR2"/Int16ub) ),
 	TICDataSelectorIfBit( 2, Struct("ADIR3"/Int16ub) ),
@@ -108,7 +109,7 @@ TICDataCBEFromBitfields = Struct(
 )		
 
 # NOTE: For Batch only scalar/numeric values are accepeted
-TICDataBatchCBEFromFieldIndex = Switch( FindFieldIndex, 
+TICDataBatchCBEFromFieldIndex_old = Switch( FindFieldIndex, 
 	{
 		0 : Int16ub, # ADIR1
 		1 : Int16ub, # ADIR2
