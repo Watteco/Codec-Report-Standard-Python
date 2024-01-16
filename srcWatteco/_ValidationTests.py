@@ -19,15 +19,14 @@ WTCParseBuildTest(STDFrame, "11 06 000C 1D 0055 00 80F0 85A0 40a00000 3dcccccd 0
 
 # Number/U16: Accelero (Chock/Clicks) max acceleration
 #  Report Std :
-WTCParseBuildTest(STDFrame, "11 0A 800E 0000 21 03E8",PRINT_JSON_IF_OK=True)
+WTCParseBuildTest(STDFrame, "11 0A 800E 0000 21 03E8",PRINT_JSON_IF_OK=False)
 #  Report Configuration Std :
 # . Basic Delta  configuration (TAP/LIS2DE) ** Acc(mg) **
 #   Min 10s, Max 30 mn, Delta 100mg
-WTCParseBuildTest(STDFrame, "11 06 800E 00 0000 21 000A 801E 0064",PRINT_JSON_IF_OK=True)
+WTCParseBuildTest(STDFrame, "11 06 800E 00 0000 21 000A 801E 0064",PRINT_JSON_IF_OK=False)
 # . New configuration (TAP/LIS2DE) ** Acc(mg) **
 #   Min 10s, Max 10 mn, Threshold 1000mg, Gap 100mg, Exceed and Fall, Alarm, Confirmed if Alarm, 2 occurences
-WTCParseBuildTest(STDFrame, "11 06 800E 88 0000 21 000A 800A f0 03E8 0064 02",PRINT_JSON_IF_OK=True)
-
+WTCParseBuildTest(STDFrame, "11 06 800E 88 0000 21 000A 800A f0 03E8 0064 02",PRINT_JSON_IF_OK=False)
 
 #  Report Configuration Batch :
 # . ACCELERATION (TAP/LIS2DE) ** Acc(mg) **

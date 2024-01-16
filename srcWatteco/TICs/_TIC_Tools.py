@@ -2,8 +2,7 @@
 from construct import *
 from WTC_CodecTools import *
 import sys
-
-from binascii import hexlify,unhexlify
+#from binascii import hexlify,unhexlify
 		
 ##### TIC Attribute ID #####################################
 # Specific for TIC attribute: <Intance u8><Attribute ID u8>
@@ -243,19 +242,19 @@ def TICBestDesc(HeaderByte, DescVarIndexes):
 				bitPos = fieldIndex % 8
 				DescVarBitsField[byteIndex] |= (1 << bitPos)
 			HeaderByte |= ((nbBytes + 1) & 0x1F) # Set Size
-			DescVarBitsField = HeaderByte.to_bytes(1) + DescVarBitsField
+			DescVarBitsField = HeaderByte.to_bytes(1,'big') + DescVarBitsField
 			#print("B: DescVarBitsField = %s" % hexlify(DescVarBitsField))
 			return DescVarBitsField
 		else:
 			HeaderByte |= (0x01 << 5) # b5 : 1 VarIndexes
 			HeaderByte |= ((nbFields + 1) & 0x1F) # Set Size
-			DescVarIndexes = HeaderByte.to_bytes(1) + DescVarIndexes
+			DescVarIndexes = HeaderByte.to_bytes(1,'big') + DescVarIndexes
 			#print("B: DescVarIndexes = %s" % hexlify(DescVarIndexes))
 			return DescVarIndexes
 	else:
 		HeaderByte |= (0x01 << 5) # b5 : 1 VarIndexes
 		HeaderByte |= (0x01) # Set Size
-		DescVarIndexes = HeaderByte.to_bytes(1) + DescVarIndexes
+		DescVarIndexes = HeaderByte.to_bytes(1,'big') + DescVarIndexes
 		return DescVarIndexes
 
 class TIC_STDField(Construct):
@@ -339,12 +338,12 @@ class TIC_STDField(Construct):
 
 			if ("Value" in obj[key]):
 				# If data field required "Value" is present it has to be built and set in dataIndexes
-				context.DataDescVarIndexes += context._FieldIndex_.to_bytes(1)
+				context.DataDescVarIndexes += context._FieldIndex_.to_bytes(1,'big')
 				self.TICFieldDescArray[context._FieldIndex_][3]._build(obj[key]["Value"], stream, context, path)
 			
 			if ("IsReported" in obj[key]):
 				if (obj[key]["IsReported"] == "Yes") :
-					context.RptSelDescVarIndexes += context._FieldIndex_.to_bytes(1)
+					context.RptSelDescVarIndexes += context._FieldIndex_.to_bytes(1,'big')
 
 		# If end of meter field list
 		# Build the VarBitfield descriptors they'll have to be used if shorter than VarIndexes
