@@ -38,7 +38,7 @@ ICEGeneralFields = [
 	(20,	False,	"*P*",	Pass),
 	(21,	True,	"KDC",	Int8ub),
 	(22,	True,	"KDCD",	Int8ub),
-	(23,	True,	"TGPHI",	Int32ub, "2.4"),
+	(23,	True,	"TGPHI",	Float32b, "2.4"),
 
 	(24,	True,	"PSP",	Int16ub),
 	(25,	True,	"PSPM",	Int16ub),
@@ -61,7 +61,7 @@ ICEGeneralFields = [
 	(40,	True,	"PA10MN",	Int16ub),
 	(41,	True,	"PREA1MN",	Int16sb),
 	(42,	True,	"PREA10MN",	Int16sb),
-	(43,	True,	"TGPHI",	Int32ub, "-"),
+	(43,	True,	"TGPHI",	Float32b, "-"),
 	(44,	True,	"U10MN",	Int16ub)
 ]
 

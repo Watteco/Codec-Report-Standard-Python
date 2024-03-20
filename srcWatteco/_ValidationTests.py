@@ -127,13 +127,13 @@ WTCParseBuildTest(STDFrame,
 #TIC ICE, General: ;meterVersion=-
 #	CONTRAT(CString),DATECOUR(DMYhms),EA(U24),ERP(U24),
 #	PTCOUR(CString),DATEPA1(DMYhms),PA1(U16),
-#	PA1MN(U16),PA10MN(U16),PREA10MN(U16),TGPHI(U32),U10MN(U16)
+#	PA1MN(U16),PA10MN(U16),PREA10MN(U16),TGPHI(Float32),U10MN(U16)
 WTCParseBuildTest(STDFrame,
 "11 0A 0053 0100 41 "                         + "3C" + # 60 (sum)
 "071F80000003FB"                                     + #  7
 "4d6f6e436f6e7472617400 010100010130 00000A 00000B " + # 23
 "48434800 44455000 010100010100 0010"                + # 16
-"0010 0011 0012 0013 00000013 0014"                  + # 14
+"0010 0011 0012 0013 bfc00000 0014"                  + # 14
 ";meterVersion=-")
 #TIC ICE ICEp1: 
 #	DEBUTp1(DMYhms),Finp1(DMYhms),CAFp1(U16),
