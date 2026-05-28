@@ -530,6 +530,17 @@ ModBusAnswer = Struct(
 	"Data" / BytesTostrHexClass(Bytes(this.DataSize))
 )
 
+# Accept an explicitly empty ModBus answer (ByteString size == 0) for
+# SerialMasterSlave report answers. Partial payloads remain parse errors.
+ModBusAnswerOrEmpty = Struct(
+	"SlaveID" / Optional(Int8ub),
+	"FcntID" / If(this.SlaveID != None, Int8ub),
+	"DataSize" / If(this.SlaveID != None, Int8ub),
+	"Data" / If(this.SlaveID != None, BytesTostrHexClass(Bytes(this.DataSize))),
+	"Empty" / Computed(this.SlaveID == None),
+	"Status" / Computed(lambda ctx: "EmptyModBusAnswer" if ctx.SlaveID == None else "ModBusAnswer")
+)
+
 DescModbusHeader = BitStruct(
 	"SequenceNb" / BitsInteger(8),
 	"FrameNb" / BitsInteger(3),
@@ -754,11 +765,11 @@ Data = Switch(
 							"SerialMasterSlave" : Switch(FindCommandID, {
 									"ReportAttributes" : 					
 									Struct(
-										"ModBusAnswer" / ModBusAnswer	
+										"ModBusAnswer" / ModBusAnswerOrEmpty	
 										),
 									"ReportAttributesAlarm" : 					
 										Struct(
-										"ModBusAnswer" / ModBusAnswer	
+										"ModBusAnswer" / ModBusAnswerOrEmpty	
 										)
 								}, default = Struct(
 									"Bytes" / BytesTostrHex
